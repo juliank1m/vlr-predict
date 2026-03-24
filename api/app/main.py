@@ -20,6 +20,7 @@ app.add_middleware(
 )
 
 app.include_router(predictions.router, prefix="/api/predictions", tags=["predictions"])
+app.include_router(predictions.adhoc_router, prefix="/api", tags=["predictions"])
 app.include_router(teams.router, prefix="/api/teams", tags=["teams"])
 app.include_router(matches.router, prefix="/api/matches", tags=["matches"])
 app.include_router(model.router, prefix="/api/model", tags=["model"])
