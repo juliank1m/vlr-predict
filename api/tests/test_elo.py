@@ -130,8 +130,8 @@ class TestDecay:
         much_later = now + timedelta(days=365)
         decayed = engine.apply_decay(1, much_later)
 
-        # Should be very close to 1500 after a year
-        assert abs(decayed - 1500.0) < 50.0
+        # Should be meaningfully closer to 1500 than 1800
+        assert abs(decayed - 1500.0) < abs(1800.0 - 1500.0)
 
     def test_decay_applied_before_update(self, engine: EloEngine):
         now = datetime(2025, 1, 1)

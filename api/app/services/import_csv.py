@@ -48,9 +48,20 @@ def to_float(val) -> float | None:
     except (ValueError, TypeError):
         return None
 
+def to_str(val) -> str | None:
+    """Convert a value to a clean string, or None if empty/NaN."""
+    if val is None:
+        return None
+    if isinstance(val, float):
+        return None
+    s = str(val).strip()
+    return s if s and s.lower() != "nan" else None
 
-def get_or_create_team(session: Session, name: str, team_cache: dict[str, int]) -> int:
+
+def get_or_create_team(session: Session, name, team_cache: dict[str, int]) -> int | None:
     """Return team ID, creating the team if it doesn't exist."""
+    if not isinstance(name, str) or not name.strip():
+        return None
     normalized = name.strip()
     if normalized in team_cache:
         return team_cache[normalized]
@@ -124,10 +135,14 @@ def import_data(data_dir: Path) -> None:
 
             team1_id = get_or_create_team(session, team1_name, team_cache)
             team2_id = get_or_create_team(session, team2_name, team_cache)
+
+            if team1_id is None or team2_id is None:
+                continue
+
             match_team_lookup[match_id] = (team1_id, team2_id)
 
             winner_id = None
-            if winner_name:
+            if winner_name and isinstance(winner_name, str):
                 winner_name = winner_name.strip()
                 if winner_name == team1_name.strip():
                     winner_id = team1_id
@@ -215,7 +230,7 @@ def import_data(data_dir: Path) -> None:
                 continue
 
             # Resolve team_id from team_name
-            team_name = row.get("team_name", "").strip()
+            team_name = str(row.get("team_name", "")).strip()
             if team_name not in team_cache:
                 team_id = get_or_create_team(session, team_name, team_cache)
             else:
@@ -225,7 +240,7 @@ def import_data(data_dir: Path) -> None:
                 map_id=game_id,
                 player_id=player_id,
                 team_id=team_id,
-                agent=row.get("agent"),
+                agent=to_str(row.get("agent")),
                 rating=to_float(row.get("rating")),
                 acs=to_float(row.get("acs")),
                 kills=to_int(row.get("kills")),
