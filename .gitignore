@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+
+# Environment
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ML artifacts
+models/*.joblib
+models/*.json
+
+# Pytest
+.pytest_cache/
+
+# Node (frontend)
+node_modules/
+.next/
+frontend/.env.local
+
+# Database
+*.sql.bak
+
+# Alembic
+alembic/versions/__pycache__/
