@@ -2,7 +2,7 @@
 
 Pre-match win probability predictions for professional Valorant, powered by historical performance features and XGBoost.
 
-**Live:** [valpredict.juliankim.dev](https://valpredict.juliankim.dev)
+**Live:** [valpredict.juliankim.dev](https://valpredict.juliankim.dev) | **API:** [api.valpredict.juliankim.dev](https://api.valpredict.juliankim.dev/docs)
 
 ## Stack
 
@@ -87,6 +87,7 @@ vlr-predict/
 | `GET` | `/api/matches/{id}` | Match detail with map scores and player stats |
 | `GET` | `/api/model/accuracy` | Rolling accuracy metrics and CV folds |
 | `GET` | `/api/model/features` | Feature importance rankings |
+| `GET` | `/api/health` | Health check |
 
 ## Dashboard Pages
 
