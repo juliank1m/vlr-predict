@@ -171,32 +171,32 @@ export interface ModelFeatures {
 export async function listTeams(search?: string, limit = 50) {
   const params = new URLSearchParams({ limit: String(limit) });
   if (search) params.set("search", search);
-  return fetchAPI<{ items: Team[]; count: number }>(`/api/teams?${params}`);
+  return fetchAPI<{ items: Team[]; count: number }>(`/api/teams/?${params}`);
 }
 
 export async function getTeam(id: number) {
-  return fetchAPI<TeamProfile>(`/api/teams/${id}`);
+  return fetchAPI<TeamProfile>(`/api/teams/${id}/`);
 }
 
 export async function getTeamPlayers(id: number) {
   return fetchAPI<{ team_id: number; team_name: string; players: PlayerInfo[] }>(
-    `/api/teams/${id}/players`
+    `/api/teams/${id}/players/`
   );
 }
 
 export async function listMatches(page = 1, pageSize = 25) {
   return fetchAPI<{ items: MatchSummary[]; page: number; page_size: number; total: number }>(
-    `/api/matches?page=${page}&page_size=${pageSize}`
+    `/api/matches/?page=${page}&page_size=${pageSize}`
   );
 }
 
 export async function getMatch(id: number) {
-  return fetchAPI<MatchDetail>(`/api/matches/${id}`);
+  return fetchAPI<MatchDetail>(`/api/matches/${id}/`);
 }
 
 export async function getUpcomingPredictions(limit = 25) {
   return fetchAPI<{ items: PredictionItem[]; count: number }>(
-    `/api/predictions/upcoming?limit=${limit}`
+    `/api/predictions/upcoming/?limit=${limit}`
   );
 }
 
@@ -204,7 +204,7 @@ export async function getPredictionHistory(limit = 100) {
   return fetchAPI<{
     items: PredictionItem[];
     summary: { count: number; accuracy: number | null };
-  }>(`/api/predictions/history?limit=${limit}`);
+  }>(`/api/predictions/history/?limit=${limit}`);
 }
 
 export async function predict(body: {
@@ -214,7 +214,7 @@ export async function predict(body: {
   team2?: string;
   map_name?: string | null;
 }) {
-  return fetchAPI<AdHocPrediction>("/api/predict", {
+  return fetchAPI<AdHocPrediction>("/api/predict/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -222,9 +222,9 @@ export async function predict(body: {
 }
 
 export async function getModelAccuracy() {
-  return fetchAPI<ModelAccuracy>("/api/model/accuracy");
+  return fetchAPI<ModelAccuracy>("/api/model/accuracy/");
 }
 
 export async function getModelFeatures() {
-  return fetchAPI<ModelFeatures>("/api/model/features");
+  return fetchAPI<ModelFeatures>("/api/model/features/");
 }
