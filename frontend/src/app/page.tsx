@@ -22,6 +22,7 @@ export default function HomePage() {
   const [predictions, setPredictions] = useState<PredictionItem[]>([]);
   const [recentMatches, setRecentMatches] = useState<MatchSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<"date" | "confidence">("date");
 
   // ad-hoc prediction state
   const [team1, setTeam1] = useState<Team | null>(null);
@@ -101,9 +102,31 @@ export default function HomePage() {
       {/* Upcoming predictions */}
       {predictions.length > 0 && (
         <>
-          <h2 className="text-lg font-semibold">Upcoming</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Upcoming</h2>
+            <div className="flex gap-1 text-xs">
+              <button
+                onClick={() => setSortBy("date")}
+                className={`rounded px-2 py-1 ${sortBy === "date" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+              >
+                By Date
+              </button>
+              <button
+                onClick={() => setSortBy("confidence")}
+                className={`rounded px-2 py-1 ${sortBy === "confidence" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
+              >
+                By Confidence
+              </button>
+            </div>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            {predictions.map((p) => (
+            {[...predictions]
+              .sort((a, b) =>
+                sortBy === "confidence"
+                  ? Math.max(b.team1_win_prob, b.team2_win_prob) - Math.max(a.team1_win_prob, a.team2_win_prob)
+                  : 0
+              )
+              .map((p) => (
               <Card key={p.id}>
                 <CardContent className="pt-6 space-y-3">
                   <div className="flex items-center justify-between text-sm">
