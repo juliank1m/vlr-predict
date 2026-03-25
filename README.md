@@ -1,4 +1,4 @@
-# VLR Predict
+# Val Predict
 
 Pre-match win probability predictions for professional Valorant, powered by historical performance features and XGBoost.
 
