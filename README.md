@@ -75,6 +75,8 @@ vlr-predict/
 
 ## API Endpoints
 
+Interactive docs: [api.valpredict.juliankim.dev/docs](https://api.valpredict.juliankim.dev/docs) (Swagger) | [/redoc](https://api.valpredict.juliankim.dev/redoc) (ReDoc)
+
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/api/predictions/upcoming` | Predictions for upcoming matches |
@@ -84,15 +86,15 @@ vlr-predict/
 | `GET` | `/api/teams/{id}` | Team profile with Elo history and map pool |
 | `GET` | `/api/teams/{id}/players` | Roster info |
 | `GET` | `/api/matches` | Paginated match results |
-| `GET` | `/api/matches/{id}` | Match detail with map scores and player stats |
+| `GET` | `/api/matches/{id}` | Match detail with map scores, player stats, and predictions |
 | `GET` | `/api/model/accuracy` | Rolling accuracy metrics and CV folds |
 | `GET` | `/api/model/features` | Feature importance rankings |
 | `GET` | `/api/health` | Health check |
 
 ## Dashboard Pages
 
-- **/** — Upcoming predictions + quick ad-hoc prediction widget + recent matches
+- **/** — Upcoming predictions (sortable by date/confidence) + quick prediction widget + recent matches
 - **/teams/[id]** — Elo chart, map pool win rates, recent results, roster
-- **/compare** — Head-to-head team comparison with model prediction
-- **/model** — Test metrics, rolling accuracy/log-loss charts, feature importance
-- **/matches/[id]** — Map-by-map breakdown with player stat tables
+- **/compare** — Head-to-head comparison with side-by-side stats, map pool, H2H record, and model prediction
+- **/model** — Test metrics, calibration curve, rolling accuracy/log-loss charts, feature importance, prediction log
+- **/matches/[id]** — Map-by-map breakdown with player stat tables and pre-match prediction
