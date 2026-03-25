@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { WinProbBar } from "@/components/win-prob-bar";
 import { getMatch, type MatchDetail } from "@/lib/api";
 
 export default function MatchDetailPage() {
@@ -70,6 +71,34 @@ export default function MatchDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Pre-match prediction */}
+      {match.predictions && match.predictions.length > 0 && (() => {
+        const seriesPred = match.predictions.find((p) => p.map_name == null) ?? match.predictions[0];
+        return (
+          <Card>
+            <CardHeader className="py-3">
+              <CardTitle className="text-sm">Pre-Match Prediction</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <WinProbBar
+                team1Name={match.team1_name}
+                team2Name={match.team2_name}
+                team1Prob={seriesPred.team1_win_prob}
+              />
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Model: {seriesPred.model_version}</span>
+                {seriesPred.correct === true && (
+                  <Badge variant="default" className="bg-green-600">Correct</Badge>
+                )}
+                {seriesPred.correct === false && (
+                  <Badge variant="secondary" className="bg-red-500 text-white">Incorrect</Badge>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Maps */}
       {match.maps.length > 0 && (

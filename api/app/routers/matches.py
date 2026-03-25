@@ -144,8 +144,21 @@ def _get_match_sync(match_id: int) -> dict[str, object] | None:
             payload["player_stats"] = [dict(row) for row in stats]
             map_payloads.append(payload)
 
+        pred_rows = session.execute(
+            text(
+                """
+                SELECT team1_id, team2_id, team1_win_prob, map_name, model_version, correct
+                FROM predictions
+                WHERE match_id = :match_id
+                ORDER BY map_name NULLS FIRST
+                """
+            ),
+            {"match_id": match_id},
+        ).mappings().all()
+
     result = dict(match_row)
     result["maps"] = map_payloads
+    result["predictions"] = [dict(row) for row in pred_rows]
     return result
 
 

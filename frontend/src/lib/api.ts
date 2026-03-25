@@ -104,8 +104,18 @@ export interface MapDetail {
   player_stats: PlayerStat[];
 }
 
+export interface MatchPrediction {
+  team1_id: number;
+  team2_id: number;
+  team1_win_prob: number;
+  map_name: string | null;
+  model_version: string;
+  correct: boolean | null;
+}
+
 export interface MatchDetail extends MatchSummary {
   maps: MapDetail[];
+  predictions: MatchPrediction[];
 }
 
 export interface PredictionItem {
