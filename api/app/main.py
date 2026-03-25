@@ -17,9 +17,8 @@ app = FastAPI(
     description="Pre-match win probability predictions for professional Valorant.",
     version="0.1.0",
     redirect_slashes=True,
-    docs_url=None if _is_production else "/docs",
-    redoc_url=None if _is_production else "/redoc",
-    openapi_url=None if _is_production else "/openapi.json",
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
 app.state.limiter = limiter
