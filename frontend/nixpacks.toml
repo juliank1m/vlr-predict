@@ -13,3 +13,4 @@ cmd = "node .next/standalone/server.js"
 [variables]
 NODE_ENV = "production"
 HOSTNAME = "0.0.0.0"
+NEXT_PUBLIC_API_URL = "https://api.valpredict.juliankim.dev"
