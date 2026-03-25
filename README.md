@@ -2,15 +2,17 @@
 
 Pre-match win probability predictions for professional Valorant, powered by historical performance features and XGBoost.
 
+**Live:** [valpredict.juliankim.dev](https://valpredict.juliankim.dev)
+
 ## Stack
 
 - **Backend:** FastAPI + SQLAlchemy + PostgreSQL
 - **ML:** XGBoost with 60 engineered features (Elo, rolling stats, map-specific, H2H, roster stability)
 - **Frontend:** Next.js 16 + TypeScript + Tailwind CSS + shadcn/ui + Recharts
-- **Scheduling:** APScheduler (daily scrape + weekly retrain placeholders)
-- **Infrastructure:** Docker Compose
+- **Scheduling:** APScheduler (daily scrape + weekly retrain)
+- **Deployment:** Railway (API + frontend + PostgreSQL)
 
-## Setup
+## Local Development
 
 ```bash
 # Start Postgres
@@ -30,7 +32,7 @@ python -m app.services.compute_elo
 # Train model
 python -m app.ml.train
 
-# Start API (from api/)
+# Start API
 uvicorn app.main:app --reload
 ```
 
@@ -60,13 +62,14 @@ vlr-predict/
 │   │   ├── routers/         # FastAPI endpoints
 │   │   ├── ml/              # XGBoost training & evaluation
 │   │   └── scheduler.py     # APScheduler cron jobs
+│   ├── alembic/             # DB migrations
 │   └── tests/
 ├── frontend/
 │   └── src/
 │       ├── app/             # Next.js pages (home, teams, compare, model, matches)
 │       ├── components/      # TeamSearch, WinProbBar, shadcn/ui
 │       └── lib/             # Typed API client
-├── models/                  # Trained model artifacts (gitignored)
+├── models/                  # Trained model artifacts
 └── docker-compose.yml
 ```
 
