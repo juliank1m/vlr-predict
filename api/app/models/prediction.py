@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -10,6 +10,10 @@ from app.models.base import Base
 
 class Prediction(Base):
     __tablename__ = "predictions"
+    __table_args__ = (
+        Index("ix_predictions_correct", "correct"),
+        Index("ix_predictions_match_id", "match_id"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     map_id: Mapped[int | None] = mapped_column(ForeignKey("maps.id"), nullable=True)

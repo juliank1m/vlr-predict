@@ -1,6 +1,6 @@
 """Player map stat model — one row per player per map."""
 
-from sqlalchemy import Float, ForeignKey, SmallInteger, String
+from sqlalchemy import Float, ForeignKey, Index, SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -8,6 +8,9 @@ from app.models.base import Base
 
 class PlayerMapStat(Base):
     __tablename__ = "player_map_stats"
+    __table_args__ = (
+        Index("ix_player_map_stats_team_id_map_id", "team_id", "map_id"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     map_id: Mapped[int] = mapped_column(ForeignKey("maps.id"), index=True)

@@ -1,6 +1,6 @@
 """Team Elo snapshot model — one row per team per map."""
 
-from sqlalchemy import Float, ForeignKey
+from sqlalchemy import Float, ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -8,6 +8,9 @@ from app.models.base import Base
 
 class TeamElo(Base):
     __tablename__ = "team_elo"
+    __table_args__ = (
+        Index("ix_team_elo_team_id_map_id", "team_id", "map_id"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     team_id: Mapped[int] = mapped_column(ForeignKey("teams.id"), index=True)

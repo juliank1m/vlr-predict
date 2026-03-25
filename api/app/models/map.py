@@ -1,6 +1,6 @@
 """Map model — one row per map played within a match."""
 
-from sqlalchemy import ForeignKey, SmallInteger, String
+from sqlalchemy import ForeignKey, Index, SmallInteger, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -8,6 +8,9 @@ from app.models.base import Base
 
 class Map(Base):
     __tablename__ = "maps"
+    __table_args__ = (
+        Index("ix_maps_match_id_map_name", "match_id", "map_name"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     match_id: Mapped[int] = mapped_column(ForeignKey("matches.id"), index=True)
