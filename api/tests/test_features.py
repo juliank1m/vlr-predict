@@ -364,3 +364,70 @@ class TestGlobalMedians:
         # Cold-start rolling stats should match the precomputed medians
         assert features["team1_avg_rating_10"] == pytest.approx(medians["avg_rating"])
         assert features["team1_avg_acs_10"] == pytest.approx(medians["avg_acs"])
+
+
+class TestSymmetry:
+    """Swapping team1/team2 should mirror the features."""
+
+    def test_elo_diff_flips_sign(self, db, sample_match):
+        f_normal = compute_features(db, **sample_match)
+        f_swapped = compute_features(
+            db, sample_match["team2_id"], sample_match["team1_id"],
+            sample_match["map_name"], sample_match["match_date"],
+        )
+        assert f_normal["elo_diff"] == pytest.approx(-f_swapped["elo_diff"])
+
+    def test_team1_team2_swap(self, db, sample_match):
+        """team1 stats in normal == team2 stats in swapped."""
+        f_normal = compute_features(db, **sample_match)
+        f_swapped = compute_features(
+            db, sample_match["team2_id"], sample_match["team1_id"],
+            sample_match["map_name"], sample_match["match_date"],
+        )
+        for n in (10, 20):
+            for k in _STAT_KEYS:
+                assert f_normal[f"team1_{k}_{n}"] == pytest.approx(
+                    f_swapped[f"team2_{k}_{n}"]
+                ), f"team1_{k}_{n} != swapped team2_{k}_{n}"
+
+    def test_h2h_complements(self, db, sample_match):
+        """H2H win rates should sum to ~1.0 when swapped (if maps > 0)."""
+        f_normal = compute_features(db, **sample_match)
+        f_swapped = compute_features(
+            db, sample_match["team2_id"], sample_match["team1_id"],
+            sample_match["map_name"], sample_match["match_date"],
+        )
+        if f_normal["h2h_maps_played"] > 0:
+            assert f_normal["h2h_team1_win_rate"] + f_swapped["h2h_team1_win_rate"] == pytest.approx(1.0)
+
+
+class TestEdgeCases:
+    """Boundary conditions and unusual inputs."""
+
+    def test_same_team_features(self, db, sample_match):
+        """Same team vs itself should still return valid features."""
+        tid = sample_match["team1_id"]
+        features = compute_features(
+            db, tid, tid, sample_match["map_name"], sample_match["match_date"],
+        )
+        assert features["elo_diff"] == 0.0
+        assert set(features.keys()) == set(FEATURE_NAMES)
+
+    def test_far_future_date(self, db, sample_match):
+        """Features at a far future date should use all available data."""
+        features = compute_features(
+            db, sample_match["team1_id"], sample_match["team2_id"],
+            sample_match["map_name"], datetime(2099, 1, 1),
+        )
+        assert set(features.keys()) == set(FEATURE_NAMES)
+        # Should have some history
+        assert features["h2h_maps_played"] >= 0
+
+    def test_nonexistent_map_name(self, db, sample_match):
+        """A map name that no one has played should yield None map features."""
+        features = compute_features(
+            db, sample_match["team1_id"], sample_match["team2_id"],
+            "ZZZ_Nonexistent_Map", sample_match["match_date"],
+        )
+        assert features["team1_map_games_played"] == 0.0 or features["team1_map_games_played"] is None
+        assert features["team2_map_games_played"] == 0.0 or features["team2_map_games_played"] is None

@@ -79,7 +79,6 @@ def test_predict_endpoint_returns_prediction_payload(client, monkeypatch):
             "team1_win_prob": 0.64,
             "team2_win_prob": 0.36,
             "model_version": "xgb_v1",
-            "features": {"elo_diff": 42.0},
         },
     )
 
@@ -91,7 +90,7 @@ def test_predict_endpoint_returns_prediction_payload(client, monkeypatch):
     body = response.json()
     assert body["team1"]["name"] == "Sentinels"
     assert body["team1_win_prob"] == 0.64
-    assert body["features"]["elo_diff"] == 42.0
+    assert "features" not in body
 
 
 def test_predict_endpoint_surfaces_missing_model(client, monkeypatch):
@@ -188,3 +187,51 @@ def test_team_players_endpoint_returns_team_context(client, monkeypatch):
     body = response.json()
     assert body["team_name"] == "Sentinels"
     assert body["players"][0]["name"] == "zekken"
+
+
+def test_predict_rejects_same_team_ids(client, monkeypatch):
+    def _raise(payload):
+        raise ValueError("team1 and team2 must be different teams.")
+
+    monkeypatch.setattr(predictions, "_predict_sync", _raise)
+
+    response = client.post(
+        "/api/predict",
+        json={"team1_id": 1, "team2_id": 1},
+    )
+    assert response.status_code == 400
+
+
+def test_predict_rejects_unknown_team(client, monkeypatch):
+    def _raise(payload):
+        raise LookupError("Unknown team id: 99999")
+
+    monkeypatch.setattr(predictions, "_predict_sync", _raise)
+
+    response = client.post(
+        "/api/predict",
+        json={"team1_id": 99999, "team2_id": 1},
+    )
+    assert response.status_code == 404
+
+
+def test_predict_validates_team_name_length(client):
+    response = client.post(
+        "/api/predict",
+        json={"team1": "A" * 201, "team2": "B"},
+    )
+    assert response.status_code == 422
+
+
+def test_predict_rejects_extra_fields(client):
+    response = client.post(
+        "/api/predict",
+        json={"team1": "Sentinels", "team2": "Gen.G", "evil_field": "drop table"},
+    )
+    assert response.status_code == 422
+
+
+def test_health_endpoint(client):
+    response = client.get("/api/health")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
