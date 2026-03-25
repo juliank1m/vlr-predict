@@ -1,7 +1,5 @@
 """Prediction endpoints."""
 
-from __future__ import annotations
-
 from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -30,7 +28,7 @@ class PredictionRequest(BaseModel):
     model_config = {"extra": "forbid"}
 
     @model_validator(mode="after")
-    def validate_identifiers(self) -> "PredictionRequest":
+    def validate_identifiers(self) -> PredictionRequest:
         if (self.team1_id is None) == (self.team1 is None):
             raise ValueError("Provide exactly one of team1 or team1_id.")
         if (self.team2_id is None) == (self.team2 is None):
