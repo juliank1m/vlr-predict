@@ -44,7 +44,7 @@ export default function MatchesPage() {
       ) : (
         <div className="space-y-2">
           {matches.map((m) => (
-            <Link key={m.id} href={`/matches/${m.id}`}>
+            <Link key={m.id} href={`/matches/${m.id}`} className="block">
               <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
                 <CardContent className="flex items-center justify-between py-3 px-4">
                   <div className="flex items-center gap-3 text-sm">

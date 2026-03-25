@@ -38,7 +38,7 @@ export default function ComparePage() {
         </p>
       </div>
 
-      <Card>
+      <Card className="overflow-visible">
         <CardContent className="pt-6 space-y-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto_1fr]">
             <div className="space-y-2">
