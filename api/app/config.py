@@ -1,22 +1,13 @@
 """Application settings loaded from environment variables."""
 
-import os
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings
 
-_is_production = bool(
-    os.getenv("RAILWAY_ENVIRONMENT_NAME") or os.getenv("NODE_ENV") == "production"
-)
-
-# Local-only defaults; production must set DATABASE_URL / DATABASE_URL_SYNC.
-_DB_DEFAULT = None if _is_production else "postgresql+asyncpg://vlr:changeme@localhost:5432/vlr_predict"
-_DB_SYNC_DEFAULT = None if _is_production else "postgresql://vlr:changeme@localhost:5432/vlr_predict"
-
 
 class Settings(BaseSettings):
-    database_url: str = _DB_DEFAULT  # type: ignore[assignment]
-    database_url_sync: str = _DB_SYNC_DEFAULT  # type: ignore[assignment]
+    database_url: str = "postgresql+asyncpg://vlr:changeme@localhost:5432/vlr_predict"
+    database_url_sync: str = "postgresql://vlr:changeme@localhost:5432/vlr_predict"
     model_path: str = "models/model.joblib"
     feature_config_path: str = "models/feature_config.json"
     training_metadata_path: str = "models/training_metadata.json"
