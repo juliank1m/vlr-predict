@@ -85,7 +85,7 @@ def _metadata_path() -> Path:
 def load_training_metadata() -> dict[str, Any]:
     path = _metadata_path()
     if not path.exists():
-        raise FileNotFoundError(f"Training metadata not found at {path}")
+        raise FileNotFoundError("Training metadata not available")
     return _load_json(path)
 
 
@@ -96,9 +96,9 @@ def load_model_bundle() -> ModelBundle:
     feature_config_path = resolve_artifact_path(settings.feature_config_path)
 
     if not model_path.exists():
-        raise FileNotFoundError(f"Model artifact not found at {model_path}")
+        raise FileNotFoundError("Model not available")
     if not feature_config_path.exists():
-        raise FileNotFoundError(f"Feature config not found at {feature_config_path}")
+        raise FileNotFoundError("Model configuration not available")
 
     feature_config = _load_json(feature_config_path)
     metadata = load_training_metadata()
@@ -203,7 +203,5 @@ def predict_matchup(
         "team1_win_prob": probability,
         "team2_win_prob": 1.0 - probability,
         "model_version": bundle.model_version,
-        "feature_names": bundle.feature_names,
-        "features": features,
         "match_date": cutoff,
     }

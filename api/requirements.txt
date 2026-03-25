@@ -25,5 +25,8 @@ pydantic-settings==2.5.2
 python-dotenv==1.0.1
 httpx>=0.27.2
 
+# Rate limiting
+slowapi==0.1.9
+
 # Scheduling
 apscheduler==3.10.4

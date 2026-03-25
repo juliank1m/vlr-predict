@@ -115,24 +115,6 @@ export default function ComparePage() {
               </div>
             </div>
 
-            {/* Key features */}
-            <div>
-              <h3 className="text-sm font-medium mb-2">Key Features</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                {Object.entries(result.features)
-                  .filter(([k]) => k.includes("elo") || k.includes("diff") || k.includes("win_rate"))
-                  .slice(0, 12)
-                  .map(([key, val]) => (
-                    <div key={key} className="rounded border px-2 py-1">
-                      <span className="text-muted-foreground">{key}: </span>
-                      <span className="font-mono">
-                        {val != null ? (typeof val === "number" ? val.toFixed(3) : val) : "—"}
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </div>
-
             <p className="text-xs text-muted-foreground">
               Model: {result.model_version}
             </p>

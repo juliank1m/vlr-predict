@@ -133,7 +133,6 @@ export interface AdHocPrediction {
   team1_win_prob: number;
   team2_win_prob: number;
   model_version: string;
-  features: Record<string, number | null>;
 }
 
 export interface FoldMetric {

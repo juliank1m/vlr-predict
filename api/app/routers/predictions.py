@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field, model_validator
 from sqlalchemy import text
 
 from app.database import SyncSessionLocal
+from app.rate_limit import limiter
 from app.services.predictor import predict_matchup, resolve_team
 
 router = APIRouter()
@@ -19,11 +20,11 @@ adhoc_router = APIRouter()
 class PredictionRequest(BaseModel):
     """Ad-hoc prediction request body."""
 
-    team1: str | None = None
-    team2: str | None = None
+    team1: str | None = Field(default=None, max_length=200)
+    team2: str | None = Field(default=None, max_length=200)
     team1_id: int | None = Field(default=None, ge=1)
     team2_id: int | None = Field(default=None, ge=1)
-    map_name: str | None = None
+    map_name: str | None = Field(default=None, max_length=50)
     match_date: datetime | None = None
 
     model_config = {"extra": "forbid"}
@@ -161,7 +162,6 @@ def _predict_sync(payload: PredictionRequest) -> dict[str, object]:
         "team1_win_prob": result["team1_win_prob"],
         "team2_win_prob": result["team2_win_prob"],
         "model_version": result["model_version"],
-        "features": result["features"],
     }
 
 
@@ -178,7 +178,8 @@ async def get_prediction_history(limit: int = Query(default=100, ge=1, le=500)):
 
 
 @adhoc_router.post("/predict")
-async def predict(payload: PredictionRequest):
+@limiter.limit("10/minute")
+async def predict(request: Request, payload: PredictionRequest):
     """Return an ad-hoc team1 win probability for a matchup."""
     try:
         return await run_in_threadpool(_predict_sync, payload)
