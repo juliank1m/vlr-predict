@@ -31,6 +31,16 @@ node_modules/
 .next/
 frontend/.env.local
 
+# Next.js boilerplate
+frontend/AGENTS.md
+frontend/CLAUDE.md
+frontend/README.md
+frontend/public/file.svg
+frontend/public/globe.svg
+frontend/public/next.svg
+frontend/public/vercel.svg
+frontend/public/window.svg
+
 # Database
 *.sql.bak
 
