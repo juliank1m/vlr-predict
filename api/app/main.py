@@ -11,7 +11,7 @@ app = FastAPI(
     title="VLR Predict",
     description="Pre-match win probability predictions for professional Valorant.",
     version="0.1.0",
-    redirect_slashes=False,
+    redirect_slashes=True,
 )
 
 _default_origins = "http://localhost:3000"
