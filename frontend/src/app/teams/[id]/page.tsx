@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Card,
@@ -32,6 +32,7 @@ import { getTeam, getTeamPlayers, type TeamProfile, type PlayerInfo } from "@/li
 
 export default function TeamProfilePage() {
   const params = useParams();
+  const router = useRouter();
   const teamId = Number(params.id);
   const [team, setTeam] = useState<TeamProfile | null>(null);
   const [players, setPlayers] = useState<PlayerInfo[]>([]);
@@ -98,7 +99,7 @@ export default function TeamProfilePage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
                 <XAxis
                   dataKey="date"
                   tick={{ fontSize: 11 }}
@@ -109,7 +110,7 @@ export default function TeamProfilePage() {
                 <Line
                   type="monotone"
                   dataKey="elo"
-                  stroke="hsl(var(--primary))"
+                  stroke="#18181b"
                   strokeWidth={2}
                   dot={false}
                 />
@@ -173,7 +174,11 @@ export default function TeamProfilePage() {
               {team.recent_matches.map((m) => {
                 const won = m.winner_id === teamId;
                 return (
-                  <TableRow key={m.match_id}>
+                  <TableRow
+                    key={m.match_id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => router.push(`/matches/${m.match_id}`)}
+                  >
                     <TableCell className="text-xs">
                       {m.date
                         ? new Date(m.date).toLocaleDateString()
@@ -183,14 +188,13 @@ export default function TeamProfilePage() {
                       <Link
                         href={`/teams/${m.opponent_id}`}
                         className="hover:underline"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         {m.opponent_name}
                       </Link>
                     </TableCell>
                     <TableCell className="font-mono text-xs">
-                      <Link href={`/matches/${m.match_id}`} className="hover:underline">
-                        {m.team1_score} - {m.team2_score}
-                      </Link>
+                      {m.team1_score} - {m.team2_score}
                     </TableCell>
                     <TableCell>
                       <Badge variant={won ? "default" : "secondary"}>

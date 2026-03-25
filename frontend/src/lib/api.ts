@@ -149,7 +149,8 @@ export interface ModelAccuracy {
   trained_at: string;
   summary: Record<string, number>;
   rolling: FoldMetric[];
-  test: Record<string, number>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  test: Record<string, any>;
   warning: string | null;
 }
 

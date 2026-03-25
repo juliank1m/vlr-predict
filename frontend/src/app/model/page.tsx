@@ -78,30 +78,33 @@ export default function ModelPage() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          {
-            label: "Test Accuracy",
-            value: accuracy.test.accuracy
-              ? `${(accuracy.test.accuracy * 100).toFixed(1)}%`
-              : "—",
-          },
-          {
-            label: "Test Log-Loss",
-            value: accuracy.test.log_loss
-              ? accuracy.test.log_loss.toFixed(4)
-              : "—",
-          },
-          {
-            label: "Test Brier",
-            value: accuracy.test.brier_score
-              ? accuracy.test.brier_score.toFixed(4)
-              : "—",
-          },
-          {
-            label: "CV Folds",
-            value: String(accuracy.rolling.length),
-          },
-        ].map((stat) => (
+        {(() => {
+          const fm = accuracy.test.full_model ?? accuracy.test;
+          return [
+            {
+              label: "Test Accuracy",
+              value: fm.accuracy
+                ? `${(fm.accuracy * 100).toFixed(1)}%`
+                : "—",
+            },
+            {
+              label: "Test Log-Loss",
+              value: fm.log_loss
+                ? fm.log_loss.toFixed(4)
+                : "—",
+            },
+            {
+              label: "Test Brier",
+              value: fm.brier_score
+                ? fm.brier_score.toFixed(4)
+                : "—",
+            },
+            {
+              label: "CV Folds",
+              value: String(accuracy.rolling.length),
+            },
+          ];
+        })().map((stat) => (
           <Card key={stat.label}>
             <CardContent className="pt-6 text-center">
               <p className="text-2xl font-bold">{stat.value}</p>
@@ -122,7 +125,7 @@ export default function ModelPage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={rollingData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
                 <XAxis
                   dataKey="month"
                   tick={{ fontSize: 10 }}
@@ -137,7 +140,7 @@ export default function ModelPage() {
                 <Line
                   type="monotone"
                   dataKey="accuracy"
-                  stroke="hsl(var(--primary))"
+                  stroke="#18181b"
                   strokeWidth={2}
                   dot={false}
                 />
@@ -158,7 +161,7 @@ export default function ModelPage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={rollingData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
                 <XAxis
                   dataKey="month"
                   tick={{ fontSize: 10 }}
@@ -169,7 +172,7 @@ export default function ModelPage() {
                 <Line
                   type="monotone"
                   dataKey="log_loss"
-                  stroke="hsl(var(--destructive))"
+                  stroke="#dc2626"
                   strokeWidth={2}
                   dot={false}
                 />
@@ -188,7 +191,7 @@ export default function ModelPage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={500}>
               <BarChart data={topFeatures} layout="vertical" margin={{ left: 140 }}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
                 <XAxis type="number" tick={{ fontSize: 11 }} />
                 <YAxis
                   type="category"
@@ -201,7 +204,7 @@ export default function ModelPage() {
                   {topFeatures.map((_, i) => (
                     <Cell
                       key={i}
-                      fill={`hsl(var(--primary) / ${0.4 + (i / topFeatures.length) * 0.6})`}
+                      fill={`rgba(24, 24, 27, ${0.4 + (i / topFeatures.length) * 0.6})`}
                     />
                   ))}
                 </Bar>
