@@ -29,7 +29,7 @@ export function TeamLogo({ name, logoUrl, size = 24, className = "" }: TeamLogoP
     .split(/\s+/)
     .map((w) => w[0])
     .join("")
-    .slice(0, 2)
+    .slice(0, 3)
     .toUpperCase();
 
   let hash = 0;
@@ -40,12 +40,13 @@ export function TeamLogo({ name, logoUrl, size = 24, className = "" }: TeamLogoP
 
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-sm text-white font-bold ${className}`}
+      className={`inline-flex items-center justify-center font-bold uppercase tracking-wider border border-white/10 ${className}`}
       style={{
         width: size,
         height: size,
-        fontSize: size * 0.4,
-        backgroundColor: `oklch(0.55 0.15 ${hue})`,
+        fontSize: size * 0.32,
+        background: `linear-gradient(135deg, oklch(0.35 0.08 ${hue}), oklch(0.22 0.05 ${hue}))`,
+        color: `oklch(0.85 0.1 ${hue})`,
       }}
     >
       {initials}
