@@ -38,9 +38,9 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col">
-        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="mx-auto flex h-14 max-w-6xl items-center px-4">
-            <Link href="/" className="mr-8 font-bold text-lg tracking-tight">
+        <header className="sticky top-0 z-50 w-full border-b border-primary/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="mx-auto flex h-12 max-w-6xl items-center px-4">
+            <Link href="/" className="mr-8 font-bold text-lg tracking-widest uppercase text-primary">
               VLR Predict
             </Link>
             <nav className="flex items-center gap-6 text-sm">

@@ -98,7 +98,7 @@ export default function ModelPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Model Performance</h1>
+        <h1 className="text-2xl font-bold tracking-widest">Model Performance</h1>
         <p className="text-muted-foreground">
           {accuracy.model_type} ({accuracy.model_version}) — trained{" "}
           {new Date(accuracy.trained_at).toLocaleDateString()}
@@ -147,7 +147,7 @@ export default function ModelPage() {
       {calibrationData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-sm tracking-widest flex items-center gap-2">
               <Brain size={16} className="text-primary" />
               Calibration Curve
             </CardTitle>
@@ -193,7 +193,7 @@ export default function ModelPage() {
       {rollingData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-sm tracking-widest flex items-center gap-2">
               <Activity size={16} className="text-accent" />
               Rolling Accuracy by Validation Month
             </CardTitle>
@@ -230,7 +230,7 @@ export default function ModelPage() {
       {rollingData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
+            <CardTitle className="text-sm tracking-widest">
               Rolling Log-Loss by Validation Month
             </CardTitle>
           </CardHeader>
@@ -262,7 +262,7 @@ export default function ModelPage() {
       {topFeatures.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-sm tracking-widest flex items-center gap-2">
               <BarChart3 size={16} className="text-primary" />
               Top 20 Feature Importances
             </CardTitle>
@@ -297,7 +297,7 @@ export default function ModelPage() {
       {historyItems.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Prediction Log</CardTitle>
+            <CardTitle className="text-sm tracking-widest">Prediction Log</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Table>

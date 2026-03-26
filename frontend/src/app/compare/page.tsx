@@ -66,7 +66,7 @@ export default function ComparePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Head-to-Head</h1>
+        <h1 className="text-2xl font-bold tracking-widest">Head-to-Head</h1>
         <p className="text-muted-foreground">
           Compare two teams and get a model prediction.
         </p>
@@ -111,7 +111,7 @@ export default function ComparePage() {
           <button
             onClick={handleCompare}
             disabled={!team1 || !team2 || loading}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+            className="inline-flex items-center justify-center bg-primary px-6 py-2 text-xs font-bold uppercase tracking-widest text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
           >
             {loading ? "Predicting..." : "Compare"}
           </button>
@@ -125,7 +125,7 @@ export default function ComparePage() {
       {result && (
         <Card className="border-t-2 border-t-primary">
           <CardHeader>
-            <CardTitle className="text-base">Prediction Result</CardTitle>
+            <CardTitle className="text-sm tracking-widest">Prediction Result</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <WinProbBar
@@ -160,7 +160,7 @@ export default function ComparePage() {
       {profile1 && profile2 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Side-by-Side Comparison</CardTitle>
+            <CardTitle className="text-sm tracking-widest">Side-by-Side Comparison</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <Table>
@@ -262,7 +262,7 @@ export default function ComparePage() {
       {profile1 && profile2 && h2hMatches.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
+            <CardTitle className="text-sm tracking-widest">
               Head-to-Head Record: {profile1.name} {h2hWins}-{h2hLosses} {profile2.name}
             </CardTitle>
           </CardHeader>

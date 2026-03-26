@@ -59,8 +59,8 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Predictions</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-widest">Predictions</h1>
+        <p className="text-sm text-muted-foreground tracking-wide">
           Model-powered win probabilities for pro Valorant matches.
         </p>
       </div>
@@ -68,7 +68,7 @@ export default function HomePage() {
       {/* Ad-hoc prediction */}
       <Card className="overflow-visible border-t-2 border-t-primary" style={{ clipPath: "polygon(0 0, 100% 0, 100% calc(100% - 8px), 0 100%)" }}>
         <CardHeader>
-          <CardTitle className="text-base">Quick Prediction</CardTitle>
+          <CardTitle className="text-sm tracking-widest">Quick Prediction</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto_1fr]">
@@ -81,7 +81,7 @@ export default function HomePage() {
           <button
             onClick={handlePredict}
             disabled={!team1 || !team2 || predicting}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+            className="inline-flex items-center justify-center bg-primary px-6 py-2 text-xs font-bold uppercase tracking-widest text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
           >
             {predicting ? "Predicting..." : "Predict"}
           </button>

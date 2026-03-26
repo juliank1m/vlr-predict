@@ -81,7 +81,7 @@ export default function TeamProfilePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
+        <h1 className="text-2xl font-bold tracking-widest flex items-center gap-3">
           <TeamLogo name={team.name} size={32} />
           {team.name}
         </h1>
@@ -99,7 +99,7 @@ export default function TeamProfilePage() {
       {chartData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-sm tracking-widest flex items-center gap-2">
               <TrendingUp size={16} className="text-accent" />
               Elo Rating Over Time
             </CardTitle>
@@ -132,7 +132,7 @@ export default function TeamProfilePage() {
       {team.map_pool.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="text-sm tracking-widest flex items-center gap-2">
               <Map size={16} className="text-primary" />
               Map Pool
             </CardTitle>
@@ -168,7 +168,7 @@ export default function TeamProfilePage() {
       {/* Recent Matches */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
+          <CardTitle className="text-sm tracking-widest flex items-center gap-2">
             <Clock size={16} className="text-muted-foreground" />
             Recent Matches
           </CardTitle>
@@ -229,7 +229,7 @@ export default function TeamProfilePage() {
       {/* Roster */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
+          <CardTitle className="text-sm tracking-widest flex items-center gap-2">
             <Users size={16} className="text-muted-foreground" />
             Roster
           </CardTitle>

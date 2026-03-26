@@ -83,7 +83,7 @@ export default function MatchDetailPage() {
         return (
           <Card className="border-t-2 border-t-primary">
             <CardHeader className="py-3">
-              <CardTitle className="text-sm">Pre-Match Prediction</CardTitle>
+              <CardTitle className="text-sm tracking-widest">Pre-Match Prediction</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <WinProbBar
@@ -165,7 +165,7 @@ export default function MatchDetailPage() {
                   return (
                   <Card key={name}>
                     <CardHeader className="py-3">
-                      <CardTitle className="text-sm">{name}</CardTitle>
+                      <CardTitle className="text-sm tracking-widest">{name}</CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
                       <Table>

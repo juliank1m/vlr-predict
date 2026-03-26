@@ -72,7 +72,7 @@
   --chart-3: oklch(0.7 0.15 80);
   --chart-4: oklch(0.55 0.03 240);
   --chart-5: oklch(0.6 0.15 300);
-  --radius: 0.625rem;
+  --radius: 0.25rem;
   --sidebar: oklch(0.95 0.005 90);
   --sidebar-foreground: oklch(0.15 0.02 240);
   --sidebar-primary: oklch(0.55 0.22 20);
@@ -127,4 +127,45 @@
   html {
     @apply font-sans;
   }
+}
+
+/* Valorant-inspired global overrides */
+h1, h2, h3, h4 {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+/* Sharper card styling */
+[data-slot="card"] {
+  border-left: 2px solid oklch(0.63 0.24 25 / 0.15);
+  box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 0.03);
+}
+
+/* Nav links uppercase */
+nav a {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Tighter table styling */
+table th {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+/* Badge styling - more angular */
+[data-slot="badge"] {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+/* Stat numbers - tighter */
+.font-mono {
+  letter-spacing: -0.02em;
 }
