@@ -81,7 +81,7 @@ export default function MatchDetailPage() {
       {match.predictions && match.predictions.length > 0 && (() => {
         const seriesPred = match.predictions.find((p) => p.map_name == null) ?? match.predictions[0];
         return (
-          <Card className="border-t-2 border-t-primary">
+          <Card >
             <CardHeader className="py-3">
               <CardTitle className="text-sm tracking-widest">Pre-Match Prediction</CardTitle>
             </CardHeader>

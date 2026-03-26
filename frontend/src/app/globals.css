@@ -72,7 +72,7 @@
   --chart-3: oklch(0.7 0.15 80);
   --chart-4: oklch(0.55 0.03 240);
   --chart-5: oklch(0.6 0.15 300);
-  --radius: 0.25rem;
+  --radius: 0.125rem;
   --sidebar: oklch(0.95 0.005 90);
   --sidebar-foreground: oklch(0.15 0.02 240);
   --sidebar-primary: oklch(0.55 0.22 20);
@@ -136,17 +136,11 @@ h1, h2, h3, h4 {
   font-weight: 700;
 }
 
-/* Sharper card styling */
-[data-slot="card"] {
-  border-left: 2px solid oklch(0.63 0.24 25 / 0.15);
-  box-shadow: inset 0 1px 0 0 oklch(1 0 0 / 0.03);
-}
-
 /* Nav links uppercase */
 nav a {
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
 }
 
@@ -154,18 +148,37 @@ nav a {
 table th {
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
+  color: var(--muted-foreground);
 }
 
-/* Badge styling - more angular */
+/* Badge styling */
 [data-slot="badge"] {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: 600;
+  font-size: 0.65rem;
 }
 
 /* Stat numbers - tighter */
 .font-mono {
   letter-spacing: -0.02em;
+}
+
+/* Inputs - themed */
+[data-slot="input"] {
+  background: var(--secondary) !important;
+  border-color: var(--border) !important;
+  font-size: 0.8rem;
+}
+[data-slot="input"]::placeholder {
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.72rem;
+}
+[data-slot="input"]:focus-visible {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 1px var(--primary);
 }

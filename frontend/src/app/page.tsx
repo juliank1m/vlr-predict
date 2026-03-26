@@ -57,7 +57,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-widest">Predictions</h1>
         <p className="text-sm text-muted-foreground tracking-wide">
@@ -66,14 +66,14 @@ export default function HomePage() {
       </div>
 
       {/* Ad-hoc prediction */}
-      <Card className="overflow-visible border-t-2 border-t-primary" style={{ clipPath: "polygon(0 0, 100% 0, 100% calc(100% - 8px), 0 100%)" }}>
+      <Card className="overflow-visible">
         <CardHeader>
           <CardTitle className="text-sm tracking-widest">Quick Prediction</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto_1fr]">
             <TeamSearch label="Select Team 1..." value={team1} onSelect={setTeam1} />
-            <span className="hidden sm:flex items-center text-sm text-muted-foreground font-medium">
+            <span className="hidden sm:flex items-center text-xs text-muted-foreground font-bold uppercase tracking-widest">
               vs
             </span>
             <TeamSearch label="Select Team 2..." value={team2} onSelect={setTeam2} />

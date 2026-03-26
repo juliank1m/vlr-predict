@@ -123,7 +123,7 @@ export default function ComparePage() {
       </Card>
 
       {result && (
-        <Card className="border-t-2 border-t-primary">
+        <Card >
           <CardHeader>
             <CardTitle className="text-sm tracking-widest">Prediction Result</CardTitle>
           </CardHeader>

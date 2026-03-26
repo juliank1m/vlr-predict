@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import { Crosshair, Swords, ChartNoAxesCombined, List } from "lucide-react";
 import Link from "next/link";
 import "./globals.css";
 
-const geistSans = Geist({
+const dmSans = DM_Sans({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
+const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
@@ -35,13 +37,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${dmSans.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col">
-        <header className="sticky top-0 z-50 w-full border-b border-primary/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="mx-auto flex h-12 max-w-6xl items-center px-4">
-            <Link href="/" className="mr-8 font-bold text-lg tracking-widest uppercase text-primary">
-              VLR Predict
+        <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="mx-auto flex h-11 max-w-6xl items-center px-4">
+            <Link href="/" className="mr-8 font-bold text-sm tracking-[0.2em] uppercase text-primary">
+              VLR<span className="text-foreground">/</span>Predict
             </Link>
             <nav className="flex items-center gap-6 text-sm">
               {navLinks.map((link) => (
@@ -58,7 +60,7 @@ export default function RootLayout({
           </div>
         </header>
         <main className="flex-1">
-          <div className="mx-auto max-w-6xl px-4 py-8">{children}</div>
+          <div className="mx-auto max-w-6xl px-4 py-6">{children}</div>
         </main>
       </body>
     </html>

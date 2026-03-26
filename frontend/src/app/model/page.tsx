@@ -134,7 +134,7 @@ export default function ModelPage() {
             },
           ];
         })().map((stat) => (
-          <Card key={stat.label} className="border-t-2 border-t-primary">
+          <Card key={stat.label} >
             <CardContent className="pt-6 text-center">
               <p className="text-2xl font-bold">{stat.value}</p>
               <p className="text-xs text-muted-foreground">{stat.label}</p>
