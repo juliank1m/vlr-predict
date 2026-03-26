@@ -136,12 +136,20 @@ h1, h2, h3, h4 {
   font-weight: 700;
 }
 
-/* Nav links uppercase */
+/* Nav links uppercase - uses DM Sans via header's font-family */
 nav a {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.7rem;
   font-weight: 600;
+}
+
+/* Headings use larger weight for Rajdhani's blocky look */
+h1 {
+  font-size: 1.75rem;
+}
+h2 {
+  font-size: 1.15rem;
 }
 
 /* Tighter table styling */

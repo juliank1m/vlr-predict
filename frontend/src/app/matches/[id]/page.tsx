@@ -26,11 +26,13 @@ export default function MatchDetailPage() {
   const matchId = Number(params.id);
   const [match, setMatch] = useState<MatchDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<string>("");
 
   useEffect(() => {
     if (!matchId) return;
     getMatch(matchId).then((m) => {
       setMatch(m);
+      if (m.maps.length > 0) setActiveTab(String(m.maps[0].id));
       setLoading(false);
     });
   }, [matchId]);
@@ -48,8 +50,24 @@ export default function MatchDetailPage() {
     return <p className="text-muted-foreground">Match not found.</p>;
   }
 
+  // Get the active map's splash URL for the full-page background
+  const activeMap = match.maps.find((m) => String(m.id) === activeTab);
+  const bgUrl = activeMap ? getMapSplashUrl(activeMap.map_name) : null;
+
   return (
-    <div className="space-y-8">
+    <div
+      className="relative -mx-4 -mt-6 px-4 pt-6 pb-8 min-h-[80vh]"
+      style={{
+        backgroundImage: bgUrl ? `url(${bgUrl})` : undefined,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+      }}
+    >
+      {bgUrl && (
+        <div className="absolute inset-0 bg-background/85 backdrop-blur-[2px]" />
+      )}
+      <div className="relative space-y-8">
       {/* Header */}
       <div>
         <div className="flex items-center gap-3 text-2xl font-bold">
@@ -107,7 +125,7 @@ export default function MatchDetailPage() {
 
       {/* Maps */}
       {match.maps.length > 0 && (
-        <Tabs defaultValue={String(match.maps[0].id)}>
+        <Tabs defaultValue={String(match.maps[0].id)} onValueChange={setActiveTab}>
           <TabsList>
             {match.maps.map((map) => (
               <TabsTrigger key={map.id} value={String(map.id)}>
@@ -128,18 +146,7 @@ export default function MatchDetailPage() {
             );
 
             return (
-              <TabsContent key={map.id} value={String(map.id)}>
-                <div
-                  className="relative rounded-lg overflow-hidden"
-                  style={{
-                    backgroundImage: getMapSplashUrl(map.map_name)
-                      ? `url(${getMapSplashUrl(map.map_name)})`
-                      : undefined,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                >
-                  <div className="bg-background/90 backdrop-blur-sm p-4 space-y-4 rounded-lg">
+              <TabsContent key={map.id} value={String(map.id)} className="space-y-4">
                 <div className="flex items-center gap-3 text-sm">
                   <span className="font-medium">{map.map_name ?? "Unknown"}</span>
                   <span className="font-mono">
@@ -231,13 +238,12 @@ export default function MatchDetailPage() {
                   </Card>
                   );
                 })}
-                  </div>
-                </div>
               </TabsContent>
             );
           })}
         </Tabs>
       )}
+      </div>
     </div>
   );
 }
