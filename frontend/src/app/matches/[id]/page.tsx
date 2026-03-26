@@ -179,60 +179,66 @@ export default function MatchDetailPage() {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Player</TableHead>
-                            <TableHead>Agent</TableHead>
-                            <TableHead className="text-right">Rating</TableHead>
-                            <TableHead className="text-right">ACS</TableHead>
-                            <TableHead className="text-right">K</TableHead>
-                            <TableHead className="text-right">D</TableHead>
-                            <TableHead className="text-right">A</TableHead>
-                            <TableHead className="text-right">KAST</TableHead>
-                            <TableHead className="text-right">ADR</TableHead>
-                            <TableHead className="text-right">FK</TableHead>
-                            <TableHead className="text-right">FD</TableHead>
+                            <TableHead className="w-[180px]">Player</TableHead>
+                            <TableHead className="text-center">R</TableHead>
+                            <TableHead className="text-center">ACS</TableHead>
+                            <TableHead className="text-center">K</TableHead>
+                            <TableHead className="text-center">D</TableHead>
+                            <TableHead className="text-center">A</TableHead>
+                            <TableHead className="text-center">+/−</TableHead>
+                            <TableHead className="text-center">KAST</TableHead>
+                            <TableHead className="text-center">ADR</TableHead>
+                            <TableHead className="text-center">FK</TableHead>
+                            <TableHead className="text-center">FD</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {stats.map((s) => (
+                          {stats.map((s) => {
+                            const diff = s.kills - s.deaths;
+                            return (
                             <TableRow key={s.player_id} className={s.player_id === mvpId ? "bg-amber-500/10" : ""}>
-                              <TableCell className="font-medium">
-                                {s.player_name}
+                              <TableCell>
+                                <div className="flex items-center gap-2.5">
+                                  <AgentIcon agentName={s.agent} size={32} />
+                                  <div className="flex flex-col">
+                                    <span className="font-semibold text-sm leading-tight">{s.player_name}</span>
+                                    <span className="text-[0.65rem] text-muted-foreground leading-tight">{s.agent ?? ""}</span>
+                                  </div>
+                                </div>
                               </TableCell>
-                              <TableCell className="text-xs">
-                                <span className="flex items-center gap-1.5">
-                                  <AgentIcon agentName={s.agent} size={18} />
-                                  {s.agent}
-                                </span>
-                              </TableCell>
-                              <TableCell className="text-right font-mono text-xs">
+                              <TableCell className="text-center font-mono text-xs">
                                 {s.rating?.toFixed(2) ?? "—"}
                               </TableCell>
-                              <TableCell className="text-right font-mono text-xs">
+                              <TableCell className="text-center font-mono text-xs">
                                 {s.acs?.toFixed(0) ?? "—"}
                               </TableCell>
-                              <TableCell className="text-right font-mono text-xs text-green-500/80">
+                              <TableCell className="text-center font-mono text-xs">
                                 {s.kills}
                               </TableCell>
-                              <TableCell className="text-right font-mono text-xs text-red-400/80">
+                              <TableCell className="text-center font-mono text-xs">
                                 {s.deaths}
                               </TableCell>
-                              <TableCell className="text-right font-mono text-xs">
+                              <TableCell className="text-center font-mono text-xs">
                                 {s.assists}
                               </TableCell>
-                              <TableCell className="text-right font-mono text-xs">
+                              <TableCell className={`text-center font-mono text-xs ${diff > 0 ? "text-green-500" : diff < 0 ? "text-red-400" : ""}`}>
+                                {diff > 0 ? `+${diff}` : diff}
+                              </TableCell>
+                              <TableCell className="text-center font-mono text-xs">
                                 {s.kast != null ? `${s.kast.toFixed(0)}%` : "—"}
                               </TableCell>
-                              <TableCell className="text-right font-mono text-xs">
+                              <TableCell className="text-center font-mono text-xs">
                                 {s.adr?.toFixed(0) ?? "—"}
                               </TableCell>
-                              <TableCell className="text-right font-mono text-xs">
+                              <TableCell className="text-center font-mono text-xs">
                                 {s.first_kills}
                               </TableCell>
-                              <TableCell className="text-right font-mono text-xs">
+                              <TableCell className="text-center font-mono text-xs">
                                 {s.first_deaths}
                               </TableCell>
                             </TableRow>
-                          ))}
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     </CardContent>
