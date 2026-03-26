@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "lucide-react";
 import { listMatches, type MatchSummary } from "@/lib/api";
 
 export default function MatchesPage() {
@@ -76,7 +77,10 @@ export default function MatchesPage() {
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="hidden sm:inline">{m.event}</span>
                     {m.date && (
-                      <span>{new Date(m.date).toLocaleDateString()}</span>
+                      <span className="flex items-center gap-1">
+                        <Calendar size={12} />
+                        {new Date(m.date).toLocaleDateString()}
+                      </span>
                     )}
                   </div>
                 </CardContent>

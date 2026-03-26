@@ -27,6 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Brain, BarChart3, Activity } from "lucide-react";
 import {
   getModelAccuracy,
   getModelFeatures,
@@ -133,7 +134,7 @@ export default function ModelPage() {
             },
           ];
         })().map((stat) => (
-          <Card key={stat.label}>
+          <Card key={stat.label} className="border-t-2 border-t-primary">
             <CardContent className="pt-6 text-center">
               <p className="text-2xl font-bold">{stat.value}</p>
               <p className="text-xs text-muted-foreground">{stat.label}</p>
@@ -146,7 +147,10 @@ export default function ModelPage() {
       {calibrationData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Calibration Curve</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Brain size={16} className="text-primary" />
+              Calibration Curve
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -189,7 +193,8 @@ export default function ModelPage() {
       {rollingData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Activity size={16} className="text-accent" />
               Rolling Accuracy by Validation Month
             </CardTitle>
           </CardHeader>
@@ -257,7 +262,10 @@ export default function ModelPage() {
       {topFeatures.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Top 20 Feature Importances</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <BarChart3 size={16} className="text-primary" />
+              Top 20 Feature Importances
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={500}>

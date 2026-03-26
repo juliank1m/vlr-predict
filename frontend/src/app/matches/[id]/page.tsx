@@ -17,6 +17,9 @@ import {
 } from "@/components/ui/table";
 import { WinProbBar } from "@/components/win-prob-bar";
 import { getMatch, type MatchDetail } from "@/lib/api";
+import { AgentIcon } from "@/components/agent-icon";
+import { TeamLogo } from "@/components/team-logo";
+import { getMapSplashUrl } from "@/lib/assets";
 
 export default function MatchDetailPage() {
   const params = useParams();
@@ -50,14 +53,16 @@ export default function MatchDetailPage() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-3 text-2xl font-bold">
-          <Link href={`/teams/${match.team1_id}`} className="hover:underline">
+          <Link href={`/teams/${match.team1_id}`} className="flex items-center gap-2 hover:underline">
+            <TeamLogo name={match.team1_name} size={28} />
             {match.team1_name}
           </Link>
           <span className="font-mono">
             {match.team1_score} - {match.team2_score}
           </span>
-          <Link href={`/teams/${match.team2_id}`} className="hover:underline">
+          <Link href={`/teams/${match.team2_id}`} className="flex items-center gap-2 hover:underline">
             {match.team2_name}
+            <TeamLogo name={match.team2_name} size={28} />
           </Link>
         </div>
         <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
@@ -76,7 +81,7 @@ export default function MatchDetailPage() {
       {match.predictions && match.predictions.length > 0 && (() => {
         const seriesPred = match.predictions.find((p) => p.map_name == null) ?? match.predictions[0];
         return (
-          <Card>
+          <Card className="border-t-2 border-t-primary">
             <CardHeader className="py-3">
               <CardTitle className="text-sm">Pre-Match Prediction</CardTitle>
             </CardHeader>
@@ -123,7 +128,18 @@ export default function MatchDetailPage() {
             );
 
             return (
-              <TabsContent key={map.id} value={String(map.id)} className="space-y-4">
+              <TabsContent key={map.id} value={String(map.id)}>
+                <div
+                  className="relative rounded-lg overflow-hidden"
+                  style={{
+                    backgroundImage: getMapSplashUrl(map.map_name)
+                      ? `url(${getMapSplashUrl(map.map_name)})`
+                      : undefined,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                >
+                  <div className="bg-background/90 backdrop-blur-sm p-4 space-y-4 rounded-lg">
                 <div className="flex items-center gap-3 text-sm">
                   <span className="font-medium">{map.map_name ?? "Unknown"}</span>
                   <span className="font-mono">
@@ -142,7 +158,11 @@ export default function MatchDetailPage() {
                 {[
                   { name: match.team1_name, stats: team1Stats },
                   { name: match.team2_name, stats: team2Stats },
-                ].map(({ name, stats }) => (
+                ].map(({ name, stats }) => {
+                  const mvpId = stats.length > 0
+                    ? stats.reduce((best, s) => (s.rating ?? 0) > (best.rating ?? 0) ? s : best).player_id
+                    : null;
+                  return (
                   <Card key={name}>
                     <CardHeader className="py-3">
                       <CardTitle className="text-sm">{name}</CardTitle>
@@ -166,21 +186,26 @@ export default function MatchDetailPage() {
                         </TableHeader>
                         <TableBody>
                           {stats.map((s) => (
-                            <TableRow key={s.player_id}>
+                            <TableRow key={s.player_id} className={s.player_id === mvpId ? "bg-amber-500/10" : ""}>
                               <TableCell className="font-medium">
                                 {s.player_name}
                               </TableCell>
-                              <TableCell className="text-xs">{s.agent}</TableCell>
+                              <TableCell className="text-xs">
+                                <span className="flex items-center gap-1.5">
+                                  <AgentIcon agentName={s.agent} size={18} />
+                                  {s.agent}
+                                </span>
+                              </TableCell>
                               <TableCell className="text-right font-mono text-xs">
                                 {s.rating?.toFixed(2) ?? "—"}
                               </TableCell>
                               <TableCell className="text-right font-mono text-xs">
                                 {s.acs?.toFixed(0) ?? "—"}
                               </TableCell>
-                              <TableCell className="text-right font-mono text-xs">
+                              <TableCell className="text-right font-mono text-xs text-green-500/80">
                                 {s.kills}
                               </TableCell>
-                              <TableCell className="text-right font-mono text-xs">
+                              <TableCell className="text-right font-mono text-xs text-red-400/80">
                                 {s.deaths}
                               </TableCell>
                               <TableCell className="text-right font-mono text-xs">
@@ -204,7 +229,10 @@ export default function MatchDetailPage() {
                       </Table>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
+                  </div>
+                </div>
               </TabsContent>
             );
           })}

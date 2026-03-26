@@ -12,6 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { TeamSearch } from "@/components/team-search";
+import { TeamLogo } from "@/components/team-logo";
 import { WinProbBar } from "@/components/win-prob-bar";
 import {
   predict,
@@ -122,7 +123,7 @@ export default function ComparePage() {
       </Card>
 
       {result && (
-        <Card>
+        <Card className="border-t-2 border-t-primary">
           <CardHeader>
             <CardTitle className="text-base">Prediction Result</CardTitle>
           </CardHeader>
@@ -165,9 +166,19 @@ export default function ComparePage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="text-right w-1/3">{profile1.name}</TableHead>
+                  <TableHead className="text-right w-1/3">
+                    <span className="flex items-center justify-end gap-2">
+                      {profile1.name}
+                      <TeamLogo name={profile1.name} size={20} />
+                    </span>
+                  </TableHead>
                   <TableHead className="text-center">Stat</TableHead>
-                  <TableHead className="w-1/3">{profile2.name}</TableHead>
+                  <TableHead className="w-1/3">
+                    <span className="flex items-center gap-2">
+                      <TeamLogo name={profile2.name} size={20} />
+                      {profile2.name}
+                    </span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -28,6 +28,8 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import { Users, Map, Clock, TrendingUp } from "lucide-react";
+import { TeamLogo } from "@/components/team-logo";
 import { getTeam, getTeamPlayers, type TeamProfile, type PlayerInfo } from "@/lib/api";
 
 export default function TeamProfilePage() {
@@ -79,7 +81,10 @@ export default function TeamProfilePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">{team.name}</h1>
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-3">
+          <TeamLogo name={team.name} size={32} />
+          {team.name}
+        </h1>
         <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
           {team.current_elo && (
             <Badge variant="secondary">
@@ -94,7 +99,10 @@ export default function TeamProfilePage() {
       {chartData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Elo Rating Over Time</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingUp size={16} className="text-accent" />
+              Elo Rating Over Time
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -124,7 +132,10 @@ export default function TeamProfilePage() {
       {team.map_pool.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Map Pool</CardTitle>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Map size={16} className="text-primary" />
+              Map Pool
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -157,7 +168,10 @@ export default function TeamProfilePage() {
       {/* Recent Matches */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Recent Matches</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Clock size={16} className="text-muted-foreground" />
+            Recent Matches
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
@@ -215,7 +229,10 @@ export default function TeamProfilePage() {
       {/* Roster */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Roster</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Users size={16} className="text-muted-foreground" />
+            Roster
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {currentRoster.length > 0 && (

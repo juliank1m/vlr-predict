@@ -5,7 +5,8 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
+import { AccentSeparator } from "@/components/accent-separator";
+import { Zap, Trophy, Calendar } from "lucide-react";
 import { TeamSearch } from "@/components/team-search";
 import { WinProbBar } from "@/components/win-prob-bar";
 import {
@@ -65,7 +66,7 @@ export default function HomePage() {
       </div>
 
       {/* Ad-hoc prediction */}
-      <Card className="overflow-visible">
+      <Card className="overflow-visible border-t-2 border-t-primary" style={{ clipPath: "polygon(0 0, 100% 0, 100% calc(100% - 8px), 0 100%)" }}>
         <CardHeader>
           <CardTitle className="text-base">Quick Prediction</CardTitle>
         </CardHeader>
@@ -103,7 +104,10 @@ export default function HomePage() {
       {predictions.length > 0 && (
         <>
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Upcoming</h2>
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <Zap size={16} className="text-primary" />
+              Upcoming
+            </h2>
             <div className="flex gap-1 text-xs">
               <button
                 onClick={() => setSortBy("date")}
@@ -156,10 +160,13 @@ export default function HomePage() {
         </>
       )}
 
-      <Separator />
+      <AccentSeparator />
 
       {/* Recent matches */}
-      <h2 className="text-lg font-semibold">Recent Matches</h2>
+      <h2 className="text-lg font-semibold flex items-center gap-2">
+        <Trophy size={16} className="text-primary" />
+        Recent Matches
+      </h2>
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -194,7 +201,10 @@ export default function HomePage() {
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <span>{m.event}</span>
                     {m.date && (
-                      <span>{new Date(m.date).toLocaleDateString()}</span>
+                      <span className="flex items-center gap-1">
+                        <Calendar size={12} />
+                        {new Date(m.date).toLocaleDateString()}
+                      </span>
                     )}
                   </div>
                 </CardContent>
