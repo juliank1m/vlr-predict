@@ -45,3 +45,6 @@ frontend/public/window.svg
 
 # Alembic
 alembic/versions/__pycache__/
+
+# Docs
+docs/plans/
