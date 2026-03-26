@@ -21,7 +21,7 @@ export function AgentIcon({ agentName, size = 20, className = "" }: AgentIconPro
         alt={agentName ?? "Agent"}
         width={size}
         height={size}
-        className={`inline-block rounded-full object-cover ${className}`}
+        className={`inline-block rounded object-cover ${className}`}
         onError={() => setFailed(true)}
       />
     );
