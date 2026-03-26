@@ -99,7 +99,7 @@ export default function TeamProfilePage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis
                   dataKey="date"
                   tick={{ fontSize: 11 }}
@@ -110,7 +110,7 @@ export default function TeamProfilePage() {
                 <Line
                   type="monotone"
                   dataKey="elo"
-                  stroke="#18181b"
+                  stroke="var(--color-primary)"
                   strokeWidth={2}
                   dot={false}
                 />

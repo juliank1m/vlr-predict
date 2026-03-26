@@ -151,7 +151,7 @@ export default function ModelPage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <ScatterChart margin={{ top: 10, right: 20, bottom: 10, left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis
                   type="number"
                   dataKey="predicted"
@@ -172,10 +172,10 @@ export default function ModelPage() {
                 />
                 <ReferenceLine
                   segment={[{ x: 0, y: 0 }, { x: 100, y: 100 }]}
-                  stroke="#a1a1aa"
+                  stroke="var(--color-muted-foreground)"
                   strokeDasharray="5 5"
                 />
-                <Scatter data={calibrationData} fill="#18181b" />
+                <Scatter data={calibrationData} fill="var(--color-primary)" />
               </ScatterChart>
             </ResponsiveContainer>
             <p className="text-xs text-muted-foreground text-center mt-2">
@@ -196,7 +196,7 @@ export default function ModelPage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={rollingData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis
                   dataKey="month"
                   tick={{ fontSize: 10 }}
@@ -211,7 +211,7 @@ export default function ModelPage() {
                 <Line
                   type="monotone"
                   dataKey="accuracy"
-                  stroke="#18181b"
+                  stroke="var(--color-primary)"
                   strokeWidth={2}
                   dot={false}
                 />
@@ -232,7 +232,7 @@ export default function ModelPage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={rollingData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis
                   dataKey="month"
                   tick={{ fontSize: 10 }}
@@ -243,7 +243,7 @@ export default function ModelPage() {
                 <Line
                   type="monotone"
                   dataKey="log_loss"
-                  stroke="#dc2626"
+                  stroke="var(--color-destructive)"
                   strokeWidth={2}
                   dot={false}
                 />
@@ -262,7 +262,7 @@ export default function ModelPage() {
           <CardContent>
             <ResponsiveContainer width="100%" height={500}>
               <BarChart data={topFeatures} layout="vertical" margin={{ left: 140 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e4e4e7" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                 <XAxis type="number" tick={{ fontSize: 11 }} />
                 <YAxis
                   type="category"
@@ -275,7 +275,7 @@ export default function ModelPage() {
                   {topFeatures.map((_, i) => (
                     <Cell
                       key={i}
-                      fill={`rgba(24, 24, 27, ${0.4 + (i / topFeatures.length) * 0.6})`}
+                      fill={`oklch(0.63 0.24 25 / ${0.4 + (i / topFeatures.length) * 0.6})`}
                     />
                   ))}
                 </Bar>

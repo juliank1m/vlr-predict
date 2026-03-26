@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Crosshair, Swords, ChartNoAxesCombined, List } from "lucide-react";
 import Link from "next/link";
 import "./globals.css";
 
@@ -20,10 +21,10 @@ export const metadata: Metadata = {
 };
 
 const navLinks = [
-  { href: "/", label: "Predictions" },
-  { href: "/compare", label: "Head-to-Head" },
-  { href: "/model", label: "Model" },
-  { href: "/matches", label: "Matches" },
+  { href: "/", label: "Predictions", icon: Crosshair },
+  { href: "/compare", label: "Head-to-Head", icon: Swords },
+  { href: "/model", label: "Model", icon: ChartNoAxesCombined },
+  { href: "/matches", label: "Matches", icon: List },
 ];
 
 export default function RootLayout({
@@ -34,7 +35,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col">
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -47,8 +48,9 @@ export default function RootLayout({
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-muted-foreground transition-colors hover:text-foreground"
+                  className="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
                 >
+                  <link.icon size={14} />
                   {link.label}
                 </Link>
               ))}
