@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
-import { DM_Sans, Rajdhani, JetBrains_Mono } from "next/font/google";
+import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import { Crosshair, Swords, ChartNoAxesCombined, List } from "lucide-react";
 import Link from "next/link";
 import "./globals.css";
 
 const dmSans = DM_Sans({
-  variable: "--font-nav",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
-
-const rajdhani = Rajdhani({
   variable: "--font-geist-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
@@ -43,10 +37,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${dmSans.variable} ${rajdhani.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
+      className={`${dmSans.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col">
-        <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" style={{ fontFamily: "var(--font-nav)" }}>
+        <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="mx-auto flex h-11 max-w-6xl items-center px-4">
             <Link href="/" className="mr-8 font-bold text-sm tracking-[0.2em] uppercase text-primary">
               Val<span className="text-foreground">/</span>Predict

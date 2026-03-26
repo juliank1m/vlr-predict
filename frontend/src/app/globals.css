@@ -144,14 +144,6 @@ nav a {
   font-weight: 600;
 }
 
-/* Headings use larger weight for Rajdhani's blocky look */
-h1 {
-  font-size: 1.75rem;
-}
-h2 {
-  font-size: 1.15rem;
-}
-
 /* Tighter table styling */
 table th {
   text-transform: uppercase;

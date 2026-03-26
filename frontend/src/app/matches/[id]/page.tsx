@@ -55,19 +55,20 @@ export default function MatchDetailPage() {
   const bgUrl = activeMap ? getMapSplashUrl(activeMap.map_name) : null;
 
   return (
-    <div
-      className="relative -mx-4 -mt-6 px-4 pt-6 pb-8 min-h-[80vh]"
-      style={{
-        backgroundImage: bgUrl ? `url(${bgUrl})` : undefined,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
-      }}
-    >
+    <>
       {bgUrl && (
-        <div className="absolute inset-0 bg-background/85 backdrop-blur-[2px]" />
+        <div
+          className="fixed inset-0 z-0"
+          style={{
+            backgroundImage: `url(${bgUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
+        </div>
       )}
-      <div className="relative space-y-8">
+      <div className="relative z-10 space-y-8">
       {/* Header */}
       <div>
         <div className="flex items-center gap-3 text-2xl font-bold">
@@ -244,6 +245,6 @@ export default function MatchDetailPage() {
         </Tabs>
       )}
       </div>
-    </div>
+    </>
   );
 }
