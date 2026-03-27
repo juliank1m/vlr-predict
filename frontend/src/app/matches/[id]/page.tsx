@@ -68,20 +68,20 @@ export default function MatchDetailPage() {
           <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
         </div>
       )}
-      <div className="relative z-10 space-y-8">
+      <div className="relative z-10 space-y-8 -mt-3">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-3 text-2xl font-bold">
-          <Link href={`/teams/${match.team1_id}`} className="flex items-center gap-2 hover:underline">
-            <TeamLogo name={match.team1_name} size={28} />
+        <div className="flex items-center gap-5 text-3xl font-bold">
+          <Link href={`/teams/${match.team1_id}`} className="flex items-center gap-3 hover:underline">
+            <TeamLogo name={match.team1_name} size={64} />
             {match.team1_name}
           </Link>
           <span className="font-mono">
             {match.team1_score} - {match.team2_score}
           </span>
-          <Link href={`/teams/${match.team2_id}`} className="flex items-center gap-2 hover:underline">
+          <Link href={`/teams/${match.team2_id}`} className="flex items-center gap-3 hover:underline">
             {match.team2_name}
-            <TeamLogo name={match.team2_name} size={28} />
+            <TeamLogo name={match.team2_name} size={64} />
           </Link>
         </div>
         <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
@@ -172,8 +172,11 @@ export default function MatchDetailPage() {
                     : null;
                   return (
                   <Card key={name}>
-                    <CardHeader className="py-3">
-                      <CardTitle className="text-sm tracking-widest">{name}</CardTitle>
+                    <CardHeader className="py-1.5 px-4">
+                      <CardTitle className="text-sm tracking-widest flex items-center gap-2">
+                        <TeamLogo name={name} size={24} />
+                        {name}
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
                       <Table>

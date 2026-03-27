@@ -54,7 +54,7 @@ export function TeamLogo({ name, logoUrl, size = 24, className = "" }: TeamLogoP
         alt={name}
         width={size}
         height={size}
-        className={`inline-block rounded-sm object-contain ${className}`}
+        className={`inline-block rounded-sm object-contain drop-shadow-[0_0_1px_rgba(255,255,255,0.8)] ${className}`}
         onError={() => setFailed(true)}
       />
     );

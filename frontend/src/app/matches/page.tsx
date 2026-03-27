@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "lucide-react";
+import { TeamLogo } from "@/components/team-logo";
 import { listMatches, type MatchSummary } from "@/lib/api";
 
 export default function MatchesPage() {
@@ -50,25 +51,27 @@ export default function MatchesPage() {
                 <CardContent className="flex items-center justify-between py-3 px-4">
                   <div className="flex items-center gap-3 text-sm">
                     <span
-                      className={
+                      className={`flex items-center gap-1.5 ${
                         m.winner_id === m.team1_id
                           ? "font-bold"
                           : "text-muted-foreground"
-                      }
+                      }`}
                     >
+                      <TeamLogo name={m.team1_name} size={20} />
                       {m.team1_name}
                     </span>
                     <span className="font-mono text-xs">
                       {m.team1_score} - {m.team2_score}
                     </span>
                     <span
-                      className={
+                      className={`flex items-center gap-1.5 ${
                         m.winner_id === m.team2_id
                           ? "font-bold"
                           : "text-muted-foreground"
-                      }
+                      }`}
                     >
                       {m.team2_name}
+                      <TeamLogo name={m.team2_name} size={20} />
                     </span>
                     <Badge variant="secondary" className="text-xs">
                       Bo{m.map_count}
