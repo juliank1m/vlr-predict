@@ -1,6 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+// Singleton cache — loaded once, shared across all TeamLogo instances
+let logoMap: Record<string, string> | null = null;
+let logoPromise: Promise<Record<string, string>> | null = null;
+
+function getLogoMap(): Promise<Record<string, string>> {
+  if (logoMap) return Promise.resolve(logoMap);
+  if (!logoPromise) {
+    logoPromise = fetch("/team-logos.json")
+      .then((r) => r.json() as Promise<Record<string, string>>)
+      .then((data) => {
+        logoMap = data;
+        return data;
+      })
+      .catch(() => {
+        logoMap = {};
+        return {};
+      });
+  }
+  return logoPromise;
+}
 
 interface TeamLogoProps {
   name: string;
@@ -10,12 +31,26 @@ interface TeamLogoProps {
 }
 
 export function TeamLogo({ name, logoUrl, size = 24, className = "" }: TeamLogoProps) {
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(logoUrl ?? null);
   const [failed, setFailed] = useState(false);
 
-  if (logoUrl && !failed) {
+  useEffect(() => {
+    if (logoUrl) {
+      setResolvedUrl(logoUrl);
+      return;
+    }
+    // Look up from static JSON
+    if (logoMap) {
+      setResolvedUrl(logoMap[name] ?? null);
+    } else {
+      getLogoMap().then((map) => setResolvedUrl(map[name] ?? null));
+    }
+  }, [name, logoUrl]);
+
+  if (resolvedUrl && !failed) {
     return (
       <img
-        src={logoUrl}
+        src={resolvedUrl}
         alt={name}
         width={size}
         height={size}
