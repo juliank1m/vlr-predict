@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 import joblib
 import numpy as np
@@ -172,8 +175,12 @@ def build_training_dataset(session: Session, *, limit: int | None = None) -> pd.
     """Compute feature rows for every resolved historical map."""
     records: list[dict[str, Any]] = []
     rows = load_training_rows(session, limit=limit)
+    total = len(rows)
+    logger.info("Computing features for %d maps...", total)
 
-    for row in rows:
+    for i, row in enumerate(rows):
+        if (i + 1) % 500 == 0:
+            logger.info("  %d/%d maps featurized...", i + 1, total)
         features = compute_features(
             session,
             team1_id=int(row["team1_id"]),
@@ -255,10 +262,13 @@ def train_and_save(
     preferred_model: str = "auto",
 ) -> dict[str, Any]:
     """Train the model, evaluate it, and persist artifacts."""
+    logger.info("Building training dataset...")
     with SyncSessionLocal() as session:
         dataset = build_training_dataset(session, limit=limit)
+    logger.info("Dataset: %d rows", len(dataset))
 
     cv_months, test_month = walk_forward_months(dataset, min_train_months)
+    logger.info("Walk-forward CV: %d folds, test month: %s", len(cv_months) - min_train_months, test_month.date())
     fold_results: list[dict[str, Any]] = []
 
     for idx in range(min_train_months, len(cv_months)):
@@ -270,6 +280,9 @@ def train_and_save(
         if train_df.empty or eval_df.empty:
             continue
 
+        logger.info("  Fold %d/%d: train=%d, validate=%d (%s)",
+                     idx - min_train_months + 1, len(cv_months) - min_train_months,
+                     len(train_df), len(eval_df), validate_month.date())
         metrics, _, _, _ = _evaluate_split(
             train_df,
             eval_df,
@@ -288,10 +301,12 @@ def train_and_save(
             }
         )
 
+    logger.info("Final test split on %s...", test_month.date())
     train_df = dataset.loc[dataset["month"] < test_month].copy()
     test_df = dataset.loc[dataset["month"] == test_month].copy()
     if train_df.empty or test_df.empty:
         raise ValueError("Unable to create final train/test split.")
+    logger.info("  Train: %d rows, Test: %d rows", len(train_df), len(test_df))
 
     test_metrics, fitted_model, test_imputation, X_test_filled = _evaluate_split(
         train_df,
@@ -306,11 +321,13 @@ def train_and_save(
         y_reference=test_df["target"],
     )
 
+    logger.info("Training final model on all %d rows...", len(dataset))
     full_imputation = compute_imputation_values(dataset[FEATURE_NAMES])
     X_full = apply_imputation(dataset[FEATURE_NAMES], full_imputation)
     final_spec = build_estimator(preferred_model=preferred_model)
     final_model = final_spec.estimator
     final_model.fit(X_full, dataset["target"])
+    logger.info("Model trained (%s). Saving artifacts...", final_spec.model_type)
 
     settings = get_settings()
     model_path = resolve_artifact_path(settings.model_path)
@@ -370,6 +387,8 @@ def train_and_save(
     joblib.dump(final_model, model_path)
     feature_config_path.write_text(json.dumps(feature_config, indent=2), encoding="utf-8")
     metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+    test_acc = test_metrics["full_model"].get("accuracy", 0)
+    logger.info("Artifacts saved. Version=%s, rows=%d, test_accuracy=%.3f", model_version, len(dataset), test_acc)
     return metadata
 
 

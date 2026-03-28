@@ -9,6 +9,8 @@ and writes an Elo snapshot per team per map.
 
 from __future__ import annotations
 
+import logging
+
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -16,6 +18,8 @@ from app.config import get_settings
 from app.database import SyncSessionLocal, sync_engine
 from app.models import TeamElo
 from app.services.elo import EloEngine
+
+logger = logging.getLogger(__name__)
 
 
 def compute_all_elo() -> None:
@@ -57,7 +61,7 @@ def compute_all_elo() -> None:
             """)
         ).fetchall()
 
-        print(f"Processing {len(rows)} maps...")
+        logger.info("Processing %d maps...", len(rows))
 
         elo_records = []
         for i, row in enumerate(rows):
@@ -87,25 +91,25 @@ def compute_all_elo() -> None:
                 session.flush()
                 elo_records.clear()
 
-            if (i + 1) % 5000 == 0:
-                print(f"  {i + 1}/{len(rows)} maps processed...")
+            if (i + 1) % 2000 == 0:
+                logger.info("  %d/%d maps processed...", i + 1, len(rows))
 
         # Flush remaining
         if elo_records:
             session.add_all(elo_records)
 
         session.commit()
-        print(f"Done. Wrote {len(rows) * 2} Elo snapshots for {len(engine.ratings)} teams.")
+        logger.info("Done. Wrote %d Elo snapshots for %d teams.", len(rows) * 2, len(engine.ratings))
 
-        # Print top 10 teams
+        # Log top 10 teams
         top_teams = sorted(engine.ratings.items(), key=lambda x: x[1], reverse=True)[:10]
         team_names = dict(
             session.execute(text("SELECT id, name FROM teams")).fetchall()
         )
-        print("\nTop 10 teams by final Elo:")
+        logger.info("Top 10 teams by final Elo:")
         for team_id, elo in top_teams:
             name = team_names.get(team_id, f"Team {team_id}")
-            print(f"  {elo:7.1f}  {name}")
+            logger.info("  %7.1f  %s", elo, name)
 
     except Exception:
         session.rollback()
