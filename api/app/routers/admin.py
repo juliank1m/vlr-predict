@@ -178,6 +178,30 @@ async def trigger_retrain(_user: str = Depends(_verify_admin)):
     return _run_in_background("retrain", _retrain_task)
 
 
+@router.post("/backfill-logos")
+async def backfill_logos(
+    logos: dict[str, str],
+    _user: str = Depends(_verify_admin),
+):
+    """Bulk-import team logos. Body: {"team_name": "logo_url", ...}"""
+    from app.database import SyncSessionLocal
+    from sqlalchemy import text
+
+    db = SyncSessionLocal()
+    updated = 0
+    try:
+        for name, url in logos.items():
+            r = db.execute(
+                text("UPDATE teams SET logo_url = :url WHERE name = :name AND logo_url IS NULL"),
+                {"name": name, "url": url},
+            )
+            updated += r.rowcount
+        db.commit()
+    finally:
+        db.close()
+    return {"updated": updated, "submitted": len(logos)}
+
+
 @router.get("/status")
 async def get_status(_user: str = Depends(_verify_admin)):
     """Get status of all jobs."""
