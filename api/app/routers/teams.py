@@ -182,6 +182,18 @@ def _get_team_players_sync(team_id: int) -> list[dict[str, object]]:
     return [dict(row) for row in rows]
 
 
+@router.get("/logos")
+async def get_team_logos():
+    """Return a {name: logo_url} map for all teams with logos."""
+    def _sync():
+        with SyncSessionLocal() as session:
+            rows = session.execute(
+                text("SELECT name, logo_url FROM teams WHERE logo_url IS NOT NULL")
+            ).all()
+            return {row[0]: row[1] for row in rows}
+    return await run_in_threadpool(_sync)
+
+
 @router.get("/")
 async def list_teams(
     search: str | None = Query(default=None, max_length=200),

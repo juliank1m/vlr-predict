@@ -29,6 +29,7 @@ MAX_FETCH_ATTEMPTS = 4
 RETRY_BASE_DELAY = 2
 
 
+
 # ---------------------------------------------------------------------------
 # HTTP helpers
 # ---------------------------------------------------------------------------
@@ -63,6 +64,27 @@ def _get_direct_text(tag: Tag | None) -> str | None:
     return t or None
 
 
+def _extract_logos(soup: BeautifulSoup) -> dict[str, str]:
+    """Extract team logos from a match detail page. Returns {team_name: logo_url}."""
+    logos: dict[str, str] = {}
+    for mod in ("mod-1", "mod-2"):
+        link = soup.select_one(f"a.match-header-link.{mod}")
+        if not link:
+            continue
+        name_el = link.select_one(".wf-title-med")
+        img = link.select_one("img[src]")
+        if not name_el or not img:
+            continue
+        name = name_el.get_text(strip=True)
+        src = img.get("src", "")
+        if src.startswith("//"):
+            src = f"https:{src}"
+        if name and src:
+            logos[name] = src
+    return logos
+
+
+
 def _normalize(value: str | None) -> str | None:
     if not value:
         return None
@@ -87,11 +109,19 @@ def _to_float(val) -> float | None:
         return None
 
 
-def _parse_date(date_str: str | None) -> datetime | None:
+def _parse_date(date_str: str | None, time_str: str | None = None) -> datetime | None:
     if not date_str or str(date_str).strip().lower() == "nan":
         return None
     try:
-        return pd.to_datetime(date_str).to_pydatetime()
+        cleaned = re.sub(r"Today|Yesterday", "", date_str).strip().rstrip(",").strip()
+        dt = pd.to_datetime(cleaned).to_pydatetime()
+        if time_str:
+            try:
+                t = pd.to_datetime(time_str.strip()).to_pydatetime()
+                dt = dt.replace(hour=t.hour, minute=t.minute)
+            except Exception:
+                pass
+        return dt
     except Exception:
         return None
 
@@ -130,10 +160,12 @@ def _parse_results_page(soup: BeautifulSoup) -> list[dict]:
             scores = [_get_text(t) for t in item.select(".match-item-vs-team-score")]
             if len(teams) < 2 or len(scores) < 2:
                 continue
+            match_time = _get_text(item.select_one(".match-item-time"))
             matches.append({
                 "match_id": int(mid.group(1)),
                 "match_url": f"{BASE_URL}{href}",
                 "date": current_date,
+                "time": match_time,
                 "team1": teams[0],
                 "team2": teams[1],
                 "team1_score": _to_int(scores[0]) or 0,
@@ -327,7 +359,7 @@ def _insert_match_data(
 
     session.merge(Match(
         id=match["match_id"],
-        date=_parse_date(match.get("date")),
+        date=_parse_date(match.get("date"), match.get("time")),
         team1_id=t1_id,
         team2_id=t2_id,
         team1_score=match["team1_score"],
@@ -392,22 +424,32 @@ def scrape_recent_matches(pages: int = 3) -> int:
     http.headers.update(HEADERS)
 
     # Collect known match IDs
+    logger.info("Connecting to database...")
     db = SyncSessionLocal()
     try:
+        logger.info("Loading existing match IDs...")
         existing_ids: set[int] = {
             row[0] for row in db.execute(text("SELECT id FROM matches")).fetchall()
         }
+        logger.info("Found %d existing matches.", len(existing_ids))
 
+        logger.info("Loading team cache...")
         team_cache: dict[str, int] = {
             row[1]: row[0] for row in db.execute(text("SELECT id, name FROM teams")).fetchall()
         }
+        logger.info("Loaded %d teams.", len(team_cache))
+
+        logger.info("Loading player cache...")
         player_cache: dict[int, bool] = {
             row[0]: True for row in db.execute(text("SELECT id FROM players")).fetchall()
         }
+        logger.info("Loaded %d players.", len(player_cache))
 
         new_count = 0
+        new_logos = 0
 
         for page in range(1, pages + 1):
+            logger.info("Fetching results page %d...", page)
             soup = _fetch(http, f"{RESULTS_URL}/?page={page}")
             page_matches = _parse_results_page(soup)
 
@@ -434,6 +476,17 @@ def scrape_recent_matches(pages: int = 3) -> int:
                         games = _extract_games(detail_soup, match)
                         player_rows = _extract_players(detail_soup, match, games)
 
+                    # Extract and save team logos from the detail page
+                    for team_name, logo_url in _extract_logos(detail_soup).items():
+                        db.execute(
+                            text("""
+                                UPDATE teams SET logo_url = :logo_url
+                                WHERE name = :name AND logo_url IS NULL
+                            """),
+                            {"name": team_name, "logo_url": logo_url},
+                        )
+                        new_logos += 1
+
                     _insert_match_data(db, match, games, player_rows, team_cache, player_cache)
                     existing_ids.add(match["match_id"])
                     new_count += 1
@@ -451,7 +504,8 @@ def scrape_recent_matches(pages: int = 3) -> int:
             logger.info("Page %d: found matches, continuing.", page)
 
         db.commit()
-        logger.info("Scrape complete: %d new matches inserted.", new_count)
+
+        logger.info("Scrape complete: %d new matches, %d new logos.", new_count, new_logos)
         return new_count
 
     except Exception:

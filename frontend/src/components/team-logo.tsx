@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
 // Singleton cache — loaded once, shared across all TeamLogo instances
 let logoMap: Record<string, string> | null = null;
 let logoPromise: Promise<Record<string, string>> | null = null;
@@ -9,7 +11,7 @@ let logoPromise: Promise<Record<string, string>> | null = null;
 function getLogoMap(): Promise<Record<string, string>> {
   if (logoMap) return Promise.resolve(logoMap);
   if (!logoPromise) {
-    logoPromise = fetch("/team-logos.json")
+    logoPromise = fetch(`${API_BASE}/api/teams/logos`)
       .then((r) => r.json() as Promise<Record<string, string>>)
       .then((data) => {
         logoMap = data;
