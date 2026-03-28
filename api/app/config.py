@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     elo_start: float = 1500.0
     elo_decay_days: int = 60
     elo_decay_rate: float = 0.02
+    admin_password: str = "changeme"
     model_config = {"env_file": ".env", "protected_namespaces": ("settings_",)}
 
 

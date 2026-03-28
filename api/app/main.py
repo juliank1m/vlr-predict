@@ -8,7 +8,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.rate_limit import limiter
-from app.routers import matches, model, predictions, teams
+from app.routers import admin, matches, model, predictions, teams
 
 _is_production = os.getenv("RAILWAY_ENVIRONMENT_NAME") or os.getenv("NODE_ENV") == "production"
 
@@ -43,6 +43,7 @@ app.include_router(predictions.adhoc_router, prefix="/api", tags=["predictions"]
 app.include_router(teams.router, prefix="/api/teams", tags=["teams"])
 app.include_router(matches.router, prefix="/api/matches", tags=["matches"])
 app.include_router(model.router, prefix="/api/model", tags=["model"])
+app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 
 
 @app.get("/api/health")
