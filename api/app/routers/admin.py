@@ -8,7 +8,7 @@ from collections import deque
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from app.config import get_settings
@@ -180,13 +180,14 @@ async def trigger_retrain(_user: str = Depends(_verify_admin)):
 
 @router.post("/backfill-logos")
 async def backfill_logos(
-    logos: dict[str, str],
+    request: Request,
     _user: str = Depends(_verify_admin),
 ):
     """Bulk-import team logos. Body: {"team_name": "logo_url", ...}"""
     from app.database import SyncSessionLocal
     from sqlalchemy import text
 
+    logos = await request.json()
     db = SyncSessionLocal()
     updated = 0
     try:
