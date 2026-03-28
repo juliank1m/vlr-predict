@@ -73,16 +73,14 @@ export default function MatchesPage() {
                       {m.team2_name}
                       <TeamLogo name={m.team2_name} size={20} />
                     </span>
-                    <Badge variant="secondary" className="text-xs">
-                      Bo{m.map_count}
-                    </Badge>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="hidden sm:inline">{m.event}</span>
                     {m.date && (
                       <span className="flex items-center gap-1">
                         <Calendar size={12} />
-                        {new Date(m.date).toLocaleDateString()}
+                        {new Date(m.date).toLocaleDateString()}{" "}
+                        {new Date(m.date).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                       </span>
                     )}
                   </div>
