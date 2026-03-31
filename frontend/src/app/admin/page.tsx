@@ -57,10 +57,13 @@ export default function AdminPage() {
         if (!res.ok) return;
         const data = await res.json();
         if (data.lines.length > 0) {
-          setLogs((prev) => ({
-            ...prev,
-            [activeLog]: [...(prev[activeLog] ?? []), ...data.lines],
-          }));
+          setLogs((prev) => {
+            const combined = [...(prev[activeLog] ?? []), ...data.lines];
+            return {
+              ...prev,
+              [activeLog]: combined.slice(-500),
+            };
+          });
           logCountRef.current[activeLog] = data.total;
         }
       } catch {
