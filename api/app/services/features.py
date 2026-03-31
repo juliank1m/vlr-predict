@@ -64,6 +64,10 @@ FEATURE_NAMES += [
     "team1_recent_momentum", "team2_recent_momentum",
     "team1_roster_overlap", "team2_roster_overlap",
 ]
+FEATURE_NAMES += [
+    "is_team1_pick", "is_team2_pick", "is_decider",
+    "team1_pick_win_rate", "team2_pick_win_rate",
+]
 
 # ---------------------------------------------------------------------------
 # SQL Templates (module-level for reuse across calls)
@@ -199,6 +203,17 @@ _ROSTER_SQL = text("""
 """)
 
 
+_PICK_WIN_RATE_SQL = text("""
+    SELECT
+        COUNT(*) AS total,
+        SUM(CASE WHEN m.winner_id = m.picked_by THEN 1 ELSE 0 END) AS wins
+    FROM maps m
+    JOIN matches mt ON m.match_id = mt.id
+    WHERE m.picked_by = :team_id
+      AND mt.date IS NOT NULL
+      AND mt.date < :match_date
+""")
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -210,6 +225,7 @@ def compute_features(
     map_name: str | None,
     match_date: datetime,
     *,
+    map_id: int | None = None,
     global_medians: dict[str, float] | None = None,
 ) -> dict[str, float | None]:
     """Compute all features for a team1 vs team2 matchup.
@@ -240,6 +256,7 @@ def compute_features(
     f.update(_h2h_features(session, team1_id, team2_id, match_date))
     f.update(_recency_features(session, team1_id, team2_id, match_date))
     f.update(_roster_features(session, team1_id, team2_id, match_date))
+    f.update(_pick_ban_features(session, team1_id, team2_id, map_id, match_date))
 
     return f
 
@@ -473,4 +490,45 @@ def _roster_features(
             f[f"{label}_roster_overlap"] = total_overlap / (roster_size * num_prev)
         else:
             f[f"{label}_roster_overlap"] = None
+    return f
+
+
+def _pick_ban_features(
+    session: Session, team1_id: int, team2_id: int,
+    map_id: int | None, match_date: datetime,
+) -> dict[str, float | None]:
+    """Compute pick/ban features for a map."""
+    f: dict[str, float | None] = {
+        "is_team1_pick": 0.0,
+        "is_team2_pick": 0.0,
+        "is_decider": 1.0,  # default to decider if no pick info
+        "team1_pick_win_rate": None,
+        "team2_pick_win_rate": None,
+    }
+
+    # Check who picked this map
+    if map_id:
+        row = session.execute(
+            text("SELECT picked_by FROM maps WHERE id = :map_id"),
+            {"map_id": map_id},
+        ).fetchone()
+        if row and row[0]:
+            picked_by = row[0]
+            if picked_by == team1_id:
+                f["is_team1_pick"] = 1.0
+                f["is_team2_pick"] = 0.0
+                f["is_decider"] = 0.0
+            elif picked_by == team2_id:
+                f["is_team1_pick"] = 0.0
+                f["is_team2_pick"] = 1.0
+                f["is_decider"] = 0.0
+
+    # Historical pick win rates
+    for label, tid in (("team1", team1_id), ("team2", team2_id)):
+        row = session.execute(
+            _PICK_WIN_RATE_SQL, {"team_id": tid, "match_date": match_date},
+        ).fetchone()
+        if row and row.total and row.total >= 3:
+            f[f"{label}_pick_win_rate"] = float(row.wins) / float(row.total)
+
     return f

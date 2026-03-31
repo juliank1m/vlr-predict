@@ -2,6 +2,7 @@
 
 from app.models.base import Base
 from app.models.map import Map
+from app.models.map_veto import MapVeto
 from app.models.match import Match
 from app.models.player import Player
 from app.models.player_map_stat import PlayerMapStat
@@ -12,6 +13,7 @@ from app.models.team_elo import TeamElo
 __all__ = [
     "Base",
     "Map",
+    "MapVeto",
     "Match",
     "Player",
     "PlayerMapStat",

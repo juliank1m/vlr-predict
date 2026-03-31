@@ -19,6 +19,7 @@ class Map(Base):
     team1_score: Mapped[int] = mapped_column(SmallInteger)
     team2_score: Mapped[int] = mapped_column(SmallInteger)
     winner_id: Mapped[int | None] = mapped_column(ForeignKey("teams.id"), nullable=True)
+    picked_by: Mapped[int | None] = mapped_column(ForeignKey("teams.id"), nullable=True)
 
     match = relationship("Match", back_populates="maps")
     winner = relationship("Team", foreign_keys=[winner_id])

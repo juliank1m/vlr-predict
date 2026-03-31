@@ -142,6 +142,12 @@ def default_feature_imputation() -> dict[str, float]:
             defaults[name] = 0.0
         elif name.endswith("_roster_overlap"):
             defaults[name] = 0.5
+        elif name.startswith("is_team") and "_pick" in name:
+            defaults[name] = 0.0
+        elif name == "is_decider":
+            defaults[name] = 1.0
+        elif name.endswith("_pick_win_rate"):
+            defaults[name] = 0.5
         else:
             defaults[name] = 0.0
     return defaults
@@ -187,6 +193,7 @@ def build_training_dataset(session: Session, *, limit: int | None = None) -> pd.
             team2_id=int(row["team2_id"]),
             map_name=row["map_name"],
             match_date=row["match_date"],
+            map_id=int(row["map_id"]),
         )
         record = {
             "map_id": int(row["map_id"]),

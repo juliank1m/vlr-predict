@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Loader2, CheckCircle, XCircle, Database, Brain, RefreshCw, Terminal } from "lucide-react";
+import { Lock, Loader2, CheckCircle, XCircle, Database, Brain, RefreshCw, Terminal, ListChecks } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -28,6 +28,7 @@ export default function AdminPage() {
   const [scrapeJob, setScrapeJob] = useState<JobState>(initialJob);
   const [eloJob, setEloJob] = useState<JobState>(initialJob);
   const [retrainJob, setRetrainJob] = useState<JobState>(initialJob);
+  const [vetoJob, setVetoJob] = useState<JobState>(initialJob);
   const [scrapePages, setScrapePages] = useState(5);
 
   const [logs, setLogs] = useState<Record<string, string[]>>({});
@@ -43,7 +44,7 @@ export default function AdminPage() {
   // Poll logs only for the active/visible job
   useEffect(() => {
     if (!activeLog || !authenticated) return;
-    const jobState = { scrape: scrapeJob, elo: eloJob, retrain: retrainJob }[activeLog];
+    const jobState = { scrape: scrapeJob, elo: eloJob, retrain: retrainJob, backfill_veto: vetoJob }[activeLog];
     if (!jobState || jobState.status === "idle") return;
 
     const poll = async () => {
@@ -70,7 +71,7 @@ export default function AdminPage() {
     poll(); // fetch immediately
     const interval = setInterval(poll, 2000);
     return () => clearInterval(interval);
-  }, [activeLog, scrapeJob.status, eloJob.status, retrainJob.status, authenticated, authHeader]);
+  }, [activeLog, scrapeJob.status, eloJob.status, retrainJob.status, vetoJob.status, authenticated, authHeader]);
 
   // Auto-scroll terminal
   useEffect(() => {
@@ -91,6 +92,7 @@ export default function AdminPage() {
         if (data.scrape) setScrapeJob(data.scrape);
         if (data.elo) setEloJob(data.elo);
         if (data.retrain) setRetrainJob(data.retrain);
+        if (data.backfill_veto) setVetoJob(data.backfill_veto);
       } else {
         setAuthError(true);
       }
@@ -134,6 +136,7 @@ export default function AdminPage() {
         if (data.scrape) setScrapeJob(data.scrape);
         if (data.elo) setEloJob(data.elo);
         if (data.retrain) setRetrainJob(data.retrain);
+        if (data.backfill_veto) setVetoJob(data.backfill_veto);
         const anyRunning = Object.values(data).some(
           (j: unknown) => (j as JobState).status === "running"
         );
@@ -213,6 +216,14 @@ export default function AdminPage() {
       state: retrainJob,
       action: () => triggerJob("retrain", "retrain", setRetrainJob),
     },
+    {
+      id: "backfill_veto",
+      label: "Backfill Veto",
+      description: "Re-scrape matches to extract veto data",
+      icon: ListChecks,
+      state: vetoJob,
+      action: () => triggerJob("backfill-veto", "backfill_veto", setVetoJob),
+    },
   ];
 
   const activeLogLines = activeLog ? (logs[activeLog] ?? []) : [];
@@ -220,7 +231,7 @@ export default function AdminPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Admin Panel</h1>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {jobs.map((job) => (
           <Card key={job.id}>
             <CardHeader className="pb-2">

@@ -157,6 +157,12 @@ def _retrain_task() -> dict:
     return _retrain_task_inner()
 
 
+def _backfill_veto_task() -> dict:
+    from app.services.scraper import backfill_veto_data
+    count = backfill_veto_data()
+    return {"matches_updated": count}
+
+
 @router.post("/scrape")
 async def trigger_scrape(
     pages: int = Query(5, ge=1, le=100),
@@ -176,6 +182,14 @@ async def trigger_elo(_user: str = Depends(_verify_admin)):
 async def trigger_retrain(_user: str = Depends(_verify_admin)):
     """Retrain the prediction model."""
     return _run_in_background("retrain", _retrain_task)
+
+
+@router.post("/backfill-veto")
+async def trigger_backfill_veto(
+    _user: str = Depends(_verify_admin),
+):
+    """Backfill veto data for all existing matches."""
+    return _run_in_background("backfill_veto", _backfill_veto_task)
 
 
 @router.post("/backfill-logos")

@@ -18,7 +18,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.database import SyncSessionLocal
-from app.models import Map, Match, Player, PlayerMapStat, Team
+from app.models import Map, MapVeto, Match, Player, PlayerMapStat, Team
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +82,45 @@ def _extract_logos(soup: BeautifulSoup) -> dict[str, str]:
         if name and src:
             logos[name] = src
     return logos
+
+
+def _extract_veto(soup: BeautifulSoup, match: dict) -> list[dict]:
+    """Parse map veto from .match-header-note. Returns list of {team: 1|2, action, map_name, order}."""
+    note = soup.select_one(".match-header-note")
+    if not note:
+        return []
+    veto_text = note.get_text(strip=True)
+    if not veto_text:
+        return []
+
+    parts = [p.strip() for p in veto_text.split(";")]
+    vetos: list[dict] = []
+    abbr_to_team: dict[str, int] = {}
+
+    for i, part in enumerate(parts):
+        if part.endswith("remains"):
+            continue
+        tokens = part.split(None, 2)
+        if len(tokens) < 3:
+            continue
+        abbr, action, map_name = tokens[0], tokens[1].lower(), tokens[2]
+        if action not in ("pick", "ban"):
+            continue
+
+        if abbr not in abbr_to_team:
+            if len(abbr_to_team) == 0:
+                abbr_to_team[abbr] = 1
+            else:
+                abbr_to_team[abbr] = 2
+
+        vetos.append({
+            "team": abbr_to_team[abbr],
+            "action": action,
+            "map_name": map_name,
+            "order": i + 1,
+        })
+
+    return vetos
 
 
 
@@ -415,6 +454,87 @@ def _insert_match_data(
 # Public API
 # ---------------------------------------------------------------------------
 
+def backfill_veto_data(batch_size: int = 200) -> int:
+    """Re-scrape ALL remaining matches to extract veto data. Returns count updated."""
+    http = requests.Session()
+    http.headers.update(HEADERS)
+    db = SyncSessionLocal()
+    total_updated = 0
+    try:
+        while True:
+            rows = db.execute(text("""
+                SELECT m.id, m.url, t1.name AS team1, t2.name AS team2,
+                       m.team1_id, m.team2_id
+                FROM matches m
+                JOIN teams t1 ON t1.id = m.team1_id
+                JOIN teams t2 ON t2.id = m.team2_id
+                WHERE m.url IS NOT NULL
+                  AND m.id NOT IN (SELECT DISTINCT match_id FROM map_vetos)
+                ORDER BY m.date DESC NULLS LAST
+                LIMIT :batch_size
+            """), {"batch_size": batch_size}).fetchall()
+
+            if not rows:
+                break
+
+            logger.info("Backfilling veto data for %d matches (%d updated so far)...", len(rows), total_updated)
+
+            for row in rows:
+                match_id, url, team1, team2, t1_id, t2_id = row
+                logger.info("Backfill veto: match %d (%s vs %s)", match_id, team1, team2)
+                try:
+                    soup = _fetch(http, url)
+                    match_dict = {"match_id": match_id, "team1": team1, "team2": team2}
+                    veto_actions = _extract_veto(soup, match_dict)
+                    if veto_actions:
+                        games = db.execute(
+                            text("SELECT id, map_name FROM maps WHERE match_id = :mid"),
+                            {"mid": match_id},
+                        ).fetchall()
+
+                        for v in veto_actions:
+                            veto_team_id = t1_id if v["team"] == 1 else t2_id
+                            db.add(MapVeto(
+                                match_id=match_id,
+                                team_id=veto_team_id,
+                                map_name=v["map_name"],
+                                action=v["action"],
+                                veto_order=v["order"],
+                            ))
+                            if v["action"] == "pick":
+                                for g in games:
+                                    if g.map_name and g.map_name.lower() == v["map_name"].lower():
+                                        db.execute(
+                                            text("UPDATE maps SET picked_by = :tid WHERE id = :mid"),
+                                            {"tid": veto_team_id, "mid": g.id},
+                                        )
+                        total_updated += 1
+                    else:
+                        # No veto info on this match — insert sentinel so we skip it next batch
+                        db.add(MapVeto(
+                            match_id=match_id,
+                            team_id=t1_id,
+                            map_name="_none",
+                            action="none",
+                            veto_order=0,
+                        ))
+                    time.sleep(0.5)
+                except Exception:
+                    logger.exception("Failed to backfill veto for match %d", match_id)
+                    continue
+
+            db.commit()
+            logger.info("Batch committed. %d matches updated so far.", total_updated)
+
+        logger.info("Veto backfill complete: %d total matches updated.", total_updated)
+        return total_updated
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
 def scrape_recent_matches(pages: int = 3) -> int:
     """Scrape recent VLR results and insert new matches into the database.
 
@@ -488,6 +608,30 @@ def scrape_recent_matches(pages: int = 3) -> int:
                         new_logos += 1
 
                     _insert_match_data(db, match, games, player_rows, team_cache, player_cache)
+
+                    # Extract and store map veto data
+                    t1_id = team_cache.get(match["team1"].strip()) if match["team1"] else None
+                    t2_id = team_cache.get(match["team2"].strip()) if match["team2"] else None
+                    veto_actions = _extract_veto(detail_soup, match)
+                    if veto_actions and t1_id and t2_id:
+                        for v in veto_actions:
+                            veto_team_id = t1_id if v["team"] == 1 else t2_id
+                            db.add(MapVeto(
+                                match_id=match["match_id"],
+                                team_id=veto_team_id,
+                                map_name=v["map_name"],
+                                action=v["action"],
+                                veto_order=v["order"],
+                            ))
+                            # Set picked_by on the corresponding map
+                            if v["action"] == "pick":
+                                for g in games:
+                                    if g["map_name"] and g["map_name"].lower() == v["map_name"].lower():
+                                        db.execute(
+                                            text("UPDATE maps SET picked_by = :team_id WHERE id = :map_id"),
+                                            {"team_id": veto_team_id, "map_id": g["game_id"]},
+                                        )
+
                     existing_ids.add(match["match_id"])
                     new_count += 1
 
