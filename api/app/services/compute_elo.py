@@ -22,7 +22,7 @@ from app.services.elo import EloEngine
 logger = logging.getLogger(__name__)
 
 
-def compute_all_elo() -> None:
+def compute_all_elo(cancel_check: callable = None) -> None:
     """Walk through every map chronologically and compute Elo updates."""
     settings = get_settings()
     engine = EloEngine(
@@ -93,6 +93,8 @@ def compute_all_elo() -> None:
 
             if (i + 1) % 2000 == 0:
                 logger.info("  %d/%d maps processed...", i + 1, len(rows))
+                if cancel_check:
+                    cancel_check()
 
         # Flush remaining
         if elo_records:

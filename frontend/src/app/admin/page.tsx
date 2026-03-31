@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Loader2, CheckCircle, XCircle, Database, Brain, RefreshCw, Terminal, ListChecks } from "lucide-react";
+import { Lock, Loader2, CheckCircle, XCircle, Database, Brain, RefreshCw, Terminal, ListChecks, Square } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -122,6 +122,17 @@ export default function AdminPage() {
       pollJob();
     } catch (e) {
       setJob({ status: "failed", error: String(e) });
+    }
+  };
+
+  const stopJob = async (jobId: string) => {
+    try {
+      await fetch(`${API_BASE}/api/admin/stop/${jobId}`, {
+        method: "POST",
+        headers: authHeader(),
+      });
+    } catch {
+      // ignore
     }
   };
 
@@ -253,21 +264,23 @@ export default function AdminPage() {
                 <p className="text-xs text-red-400 break-all">{job.state.error}</p>
               )}
               <div className="flex gap-2">
-                <Button
-                  onClick={job.action}
-                  disabled={job.state.status === "running"}
-                  className="flex-1"
-                  variant={job.state.status === "running" ? "secondary" : "default"}
-                >
-                  {job.state.status === "running" ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin mr-1" />
-                      Running...
-                    </>
-                  ) : (
-                    "Run"
-                  )}
-                </Button>
+                {job.state.status === "running" ? (
+                  <Button
+                    onClick={() => stopJob(job.id)}
+                    className="flex-1"
+                    variant="destructive"
+                  >
+                    <Square size={14} className="mr-1" />
+                    Stop
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={job.action}
+                    className="flex-1"
+                  >
+                    Run
+                  </Button>
+                )}
                 {(logs[job.id]?.length ?? 0) > 0 && (
                   <Button
                     variant={activeLog === job.id ? "default" : "outline"}

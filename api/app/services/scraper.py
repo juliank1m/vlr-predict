@@ -454,7 +454,7 @@ def _insert_match_data(
 # Public API
 # ---------------------------------------------------------------------------
 
-def backfill_veto_data(batch_size: int = 200) -> int:
+def backfill_veto_data(batch_size: int = 200, cancel_check: callable = None) -> int:
     """Re-scrape ALL remaining matches to extract veto data. Returns count updated."""
     http = requests.Session()
     http.headers.update(HEADERS)
@@ -480,6 +480,8 @@ def backfill_veto_data(batch_size: int = 200) -> int:
             logger.info("Backfilling veto data for %d matches (%d updated so far)...", len(rows), total_updated)
 
             for row in rows:
+                if cancel_check:
+                    cancel_check()
                 match_id, url, team1, team2, t1_id, t2_id = row
                 logger.info("Backfill veto: match %d (%s vs %s)", match_id, team1, team2)
                 try:
@@ -535,7 +537,7 @@ def backfill_veto_data(batch_size: int = 200) -> int:
         db.close()
 
 
-def scrape_recent_matches(pages: int = 3) -> int:
+def scrape_recent_matches(pages: int = 3, cancel_check: callable = None) -> int:
     """Scrape recent VLR results and insert new matches into the database.
 
     Returns the number of new matches inserted.
@@ -583,6 +585,8 @@ def scrape_recent_matches(pages: int = 3) -> int:
                     continue
                 all_known = False
 
+                if cancel_check:
+                    cancel_check()
                 # Scrape match detail for games + player stats
                 logger.info("Scraping match %d: %s vs %s", match["match_id"], match["team1"], match["team2"])
                 try:

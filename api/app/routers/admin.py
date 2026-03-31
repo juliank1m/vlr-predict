@@ -20,6 +20,7 @@ security = HTTPBasic()
 # Simple in-memory job status tracking
 _jobs: dict[str, dict[str, Any]] = {}
 _lock = threading.Lock()
+_cancel_events: dict[str, threading.Event] = {}
 
 # Per-job log buffers (max 500 lines each)
 _logs: dict[str, deque[str]] = {}
@@ -49,6 +50,17 @@ def _verify_admin(credentials: HTTPBasicCredentials = Depends(security)) -> str:
     return credentials.username
 
 
+class JobCancelled(Exception):
+    """Raised when a job is cancelled."""
+
+
+def check_cancelled(job_id: str) -> None:
+    """Check if a job has been cancelled. Call periodically from long-running tasks."""
+    evt = _cancel_events.get(job_id)
+    if evt and evt.is_set():
+        raise JobCancelled(f"Job '{job_id}' was cancelled")
+
+
 def _run_in_background(job_id: str, func, **kwargs) -> dict:
     """Start a job in a background thread and return its status."""
     with _lock:
@@ -56,10 +68,12 @@ def _run_in_background(job_id: str, func, **kwargs) -> dict:
         if existing and existing["status"] == "running":
             return existing
 
-    # Set up log capture for this job
+    # Set up log capture and cancel event for this job
     handler = _JobLogHandler(job_id)
+    cancel_event = threading.Event()
     with _lock:
         _logs[job_id] = deque(maxlen=MAX_LOG_LINES)
+        _cancel_events[job_id] = cancel_event
 
     def _worker():
         # Attach handler to app loggers (not uvicorn/root to avoid feedback loop)
@@ -87,6 +101,15 @@ def _run_in_background(job_id: str, func, **kwargs) -> dict:
                 "admin", logging.INFO, "", 0,
                 f"Job '{job_id}' completed: {result}", (), None,
             ))
+        except JobCancelled:
+            with _lock:
+                _jobs[job_id]["status"] = "failed"
+                _jobs[job_id]["error"] = "Cancelled by user"
+                _jobs[job_id]["completed_at"] = datetime.now(UTC).isoformat()
+            handler.emit(logging.LogRecord(
+                "admin", logging.WARNING, "", 0,
+                f"Job '{job_id}' cancelled", (), None,
+            ))
         except Exception as e:
             logger.exception("Job %s failed", job_id)
             with _lock:
@@ -111,7 +134,7 @@ def _scrape_task(pages: int = 5) -> dict:
     from app.services.scraper import scrape_recent_matches
 
     _job_log("scrape", "Starting scrape with %d pages...", pages)
-    count = scrape_recent_matches(pages=pages)
+    count = scrape_recent_matches(pages=pages, cancel_check=lambda: check_cancelled("scrape"))
     _job_log("scrape", "Scrape finished: %d new matches", count)
     return {"new_matches": count}
 
@@ -120,7 +143,7 @@ def _elo_task_inner() -> dict:
     from app.services.compute_elo import compute_all_elo
 
     _job_log("elo", "Starting Elo recomputation...")
-    compute_all_elo()
+    compute_all_elo(cancel_check=lambda: check_cancelled("elo"))
     _job_log("elo", "Elo recomputation complete")
     return {"status": "done"}
 
@@ -129,7 +152,7 @@ def _retrain_task_inner() -> dict:
     from app.ml.train import train_and_save
 
     _job_log("retrain", "Starting model training...")
-    metadata = train_and_save()
+    metadata = train_and_save(cancel_check=lambda: check_cancelled("retrain"))
     _job_log("retrain", "Training complete: version=%s", metadata.get("model_version"))
     return {
         "model_version": metadata.get("model_version"),
@@ -159,7 +182,7 @@ def _retrain_task() -> dict:
 
 def _backfill_veto_task() -> dict:
     from app.services.scraper import backfill_veto_data
-    count = backfill_veto_data()
+    count = backfill_veto_data(cancel_check=lambda: check_cancelled("backfill_veto"))
     return {"matches_updated": count}
 
 
@@ -215,6 +238,16 @@ async def backfill_logos(
     finally:
         db.close()
     return {"updated": updated, "submitted": len(logos)}
+
+
+@router.post("/stop/{job_id}")
+async def stop_job(job_id: str, _user: str = Depends(_verify_admin)):
+    """Cancel a running job."""
+    evt = _cancel_events.get(job_id)
+    if not evt:
+        raise HTTPException(status_code=404, detail="Job not found")
+    evt.set()
+    return {"status": "cancelling", "job_id": job_id}
 
 
 @router.get("/status")

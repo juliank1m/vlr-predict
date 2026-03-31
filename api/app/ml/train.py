@@ -177,7 +177,7 @@ def load_training_rows(session: Session, limit: int | None = None) -> list[dict[
     return [dict(row) for row in rows]
 
 
-def build_training_dataset(session: Session, *, limit: int | None = None) -> pd.DataFrame:
+def build_training_dataset(session: Session, *, limit: int | None = None, cancel_check: callable = None) -> pd.DataFrame:
     """Compute feature rows for every resolved historical map."""
     records: list[dict[str, Any]] = []
     rows = load_training_rows(session, limit=limit)
@@ -187,6 +187,8 @@ def build_training_dataset(session: Session, *, limit: int | None = None) -> pd.
     for i, row in enumerate(rows):
         if (i + 1) % 500 == 0:
             logger.info("  %d/%d maps featurized...", i + 1, total)
+            if cancel_check:
+                cancel_check()
         features = compute_features(
             session,
             team1_id=int(row["team1_id"]),
@@ -267,11 +269,12 @@ def train_and_save(
     limit: int | None = None,
     min_train_months: int = 6,
     preferred_model: str = "auto",
+    cancel_check: callable = None,
 ) -> dict[str, Any]:
     """Train the model, evaluate it, and persist artifacts."""
     logger.info("Building training dataset...")
     with SyncSessionLocal() as session:
-        dataset = build_training_dataset(session, limit=limit)
+        dataset = build_training_dataset(session, limit=limit, cancel_check=cancel_check)
     logger.info("Dataset: %d rows", len(dataset))
 
     cv_months, test_month = walk_forward_months(dataset, min_train_months)
