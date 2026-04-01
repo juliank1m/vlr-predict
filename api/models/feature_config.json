@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-03-31T17:45:48.337624+00:00",
+  "created_at": "2026-04-01T06:15:46.554139+00:00",
   "feature_names": [
     "team1_elo",
     "team2_elo",
@@ -65,12 +65,15 @@
     "is_team2_pick",
     "is_decider",
     "team1_pick_win_rate",
-    "team2_pick_win_rate"
+    "team2_pick_win_rate",
+    "team1_map_elo",
+    "team2_map_elo",
+    "map_elo_diff"
   ],
   "imputation_values": {
     "team1_elo": 1634.380664647059,
-    "team2_elo": 1573.0089894528257,
-    "elo_diff": 29.200509044717137,
+    "team2_elo": 1573.0369736513744,
+    "elo_diff": 29.108328382937316,
     "team1_avg_rating_10": 1.0,
     "team1_avg_acs_10": 202.08,
     "team1_avg_kast_10": 70.14,
@@ -110,7 +113,7 @@
     "avg_acs_diff_20": 0.960000000000008,
     "avg_kast_diff_20": 0.0,
     "avg_adr_diff_20": 0.0,
-    "fk_rate_diff_20": 0.10882352941176521,
+    "fk_rate_diff_20": 0.10789473684210371,
     "fd_rate_diff_20": 0.0,
     "win_rate_diff_20": 0.0,
     "team1_map_win_rate": 0.55,
@@ -132,6 +135,9 @@
     "is_team2_pick": 0.0,
     "is_decider": 1.0,
     "team1_pick_win_rate": 0.5411764705882353,
-    "team2_pick_win_rate": 0.5263157894736842
+    "team2_pick_win_rate": 0.5263157894736842,
+    "team1_map_elo": 1547.8257556698786,
+    "team2_map_elo": 1524.8298862666968,
+    "map_elo_diff": 13.87021714432126
   }
 }

@@ -148,6 +148,10 @@ def default_feature_imputation() -> dict[str, float]:
             defaults[name] = 1.0
         elif name.endswith("_pick_win_rate"):
             defaults[name] = 0.5
+        elif name.endswith("_map_elo"):
+            defaults[name] = 1500.0
+        elif name == "map_elo_diff":
+            defaults[name] = 0.0
         else:
             defaults[name] = 0.0
     return defaults

@@ -68,6 +68,9 @@ FEATURE_NAMES += [
     "is_team1_pick", "is_team2_pick", "is_decider",
     "team1_pick_win_rate", "team2_pick_win_rate",
 ]
+FEATURE_NAMES += [
+    "team1_map_elo", "team2_map_elo", "map_elo_diff",
+]
 
 # ---------------------------------------------------------------------------
 # SQL Templates (module-level for reuse across calls)
@@ -83,6 +86,30 @@ _ELO_SQL = text("""
       AND mt.date < :match_date
     ORDER BY mt.date DESC, m.map_number DESC
     LIMIT 1
+""")
+
+_MAP_ELO_SQL = text("""
+    SELECT te.elo
+    FROM team_elo te
+    JOIN maps m ON te.map_id = m.id
+    JOIN matches mt ON m.match_id = mt.id
+    WHERE te.team_id = :team_id
+      AND te.map_name = :map_name
+      AND mt.date IS NOT NULL
+      AND mt.date < :match_date
+    ORDER BY mt.date DESC, m.map_number DESC
+    LIMIT 1
+""")
+
+_MAP_ELO_COUNT_SQL = text("""
+    SELECT COUNT(*)
+    FROM team_elo te
+    JOIN maps m ON te.map_id = m.id
+    JOIN matches mt ON m.match_id = mt.id
+    WHERE te.team_id = :team_id
+      AND te.map_name = :map_name
+      AND mt.date IS NOT NULL
+      AND mt.date < :match_date
 """)
 
 _ROLLING_SQL = text("""
@@ -248,6 +275,7 @@ def compute_features(
     f: dict[str, float | None] = {}
 
     f.update(_elo_features(session, team1_id, team2_id, match_date))
+    f.update(_map_elo_features(session, team1_id, team2_id, map_name, match_date, f))
 
     for n in _ROLLING_WINDOWS:
         f.update(_rolling_features(session, team1_id, team2_id, match_date, n, medians))
@@ -325,6 +353,53 @@ def _elo_features(
         ).fetchone()
         f[f"{label}_elo"] = float(row[0]) if row else 1500.0
     f["elo_diff"] = f["team1_elo"] - f["team2_elo"]
+    return f
+
+
+_MAP_ELO_BLEND_THRESHOLD = 5
+
+
+def _map_elo_features(
+    session: Session, team1_id: int, team2_id: int,
+    map_name: str | None, match_date: datetime,
+    global_elos: dict[str, float],
+) -> dict[str, float]:
+    """Compute per-map Elo features with blending for low sample sizes."""
+    f: dict[str, float] = {}
+
+    for label, tid in (("team1", team1_id), ("team2", team2_id)):
+        global_elo = global_elos.get(f"{label}_elo", 1500.0)
+
+        if not map_name:
+            f[f"{label}_map_elo"] = global_elo
+            continue
+
+        row = session.execute(
+            _MAP_ELO_SQL,
+            {"team_id": tid, "map_name": map_name, "match_date": match_date},
+        ).fetchone()
+
+        if not row:
+            f[f"{label}_map_elo"] = global_elo
+            continue
+
+        map_elo = float(row[0])
+
+        # Count games on this map for blending
+        count_row = session.execute(
+            _MAP_ELO_COUNT_SQL,
+            {"team_id": tid, "map_name": map_name, "match_date": match_date},
+        ).fetchone()
+        n = int(count_row[0]) if count_row else 0
+
+        if n >= _MAP_ELO_BLEND_THRESHOLD:
+            f[f"{label}_map_elo"] = map_elo
+        else:
+            # Blend: (n/5) * map_elo + (1 - n/5) * global_elo
+            blend = (n / _MAP_ELO_BLEND_THRESHOLD) * map_elo + (1 - n / _MAP_ELO_BLEND_THRESHOLD) * global_elo
+            f[f"{label}_map_elo"] = blend
+
+    f["map_elo_diff"] = f["team1_map_elo"] - f["team2_map_elo"]
     return f
 
 
