@@ -45,7 +45,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (!activeLog || !authenticated) return;
     const jobState = { scrape: scrapeJob, elo: eloJob, retrain: retrainJob, backfill_veto: vetoJob }[activeLog];
-    if (!jobState || jobState.status === "idle") return;
+    if (!jobState || jobState.status !== "running") return;
 
     const poll = async () => {
       const since = logCountRef.current[activeLog] ?? 0;
