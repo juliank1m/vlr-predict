@@ -10,7 +10,7 @@ from sqlalchemy import text
 
 from app.database import SyncSessionLocal
 from app.rate_limit import limiter
-from app.services.predictor import predict_matchup, resolve_team
+from app.services.predictor import predict_matchup, predict_series, resolve_team
 
 router = APIRouter()
 adhoc_router = APIRouter()
@@ -164,6 +164,28 @@ def _predict_sync(payload: PredictionRequest) -> dict[str, object]:
     }
 
 
+def _predict_series_sync(payload: PredictionRequest) -> dict[str, object]:
+    with SyncSessionLocal() as session:
+        team1 = resolve_team(session, team_id=payload.team1_id, team_name=payload.team1)
+        team2 = resolve_team(session, team_id=payload.team2_id, team_name=payload.team2)
+        result = predict_series(
+            session,
+            team1_id=team1.id,
+            team2_id=team2.id,
+            match_date=payload.match_date,
+        )
+
+    return {
+        "team1": {"id": team1.id, "name": team1.name},
+        "team2": {"id": team2.id, "name": team2.name},
+        "map_predictions": result["map_predictions"],
+        "score_probs": result["score_probs"],
+        "series_win_prob": result["series_win_prob"],
+        "match_date": result["match_date"],
+        "model_version": result["model_version"],
+    }
+
+
 @router.get("/upcoming")
 async def get_upcoming_predictions(limit: int = Query(default=25, ge=1, le=100)):
     """Return predictions for upcoming matches."""
@@ -182,6 +204,20 @@ async def predict(request: Request, payload: PredictionRequest):
     """Return an ad-hoc team1 win probability for a matchup."""
     try:
         return await run_in_threadpool(_predict_sync, payload)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@adhoc_router.post("/predict/series")
+@limiter.limit("10/minute")
+async def predict_series_endpoint(request: Request, payload: PredictionRequest):
+    """Return per-map predictions and Bo3 score line probabilities."""
+    try:
+        return await run_in_threadpool(_predict_series_sync, payload)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except LookupError as exc:

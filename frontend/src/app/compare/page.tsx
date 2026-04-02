@@ -16,8 +16,10 @@ import { TeamLogo } from "@/components/team-logo";
 import { WinProbBar } from "@/components/win-prob-bar";
 import {
   predict,
+  predictSeries,
   getTeam,
   type AdHocPrediction,
+  type SeriesPrediction,
   type Team,
   type TeamProfile,
 } from "@/lib/api";
@@ -26,6 +28,7 @@ export default function ComparePage() {
   const [team1, setTeam1] = useState<Team | null>(null);
   const [team2, setTeam2] = useState<Team | null>(null);
   const [result, setResult] = useState<AdHocPrediction | null>(null);
+  const [seriesResult, setSeriesResult] = useState<SeriesPrediction | null>(null);
   const [profile1, setProfile1] = useState<TeamProfile | null>(null);
   const [profile2, setProfile2] = useState<TeamProfile | null>(null);
   const [loading, setLoading] = useState(false);
@@ -36,15 +39,18 @@ export default function ComparePage() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setSeriesResult(null);
     setProfile1(null);
     setProfile2(null);
     try {
-      const [r, p1, p2] = await Promise.all([
+      const [r, series, p1, p2] = await Promise.all([
         predict({ team1_id: team1.id, team2_id: team2.id }),
+        predictSeries({ team1_id: team1.id, team2_id: team2.id }),
         getTeam(team1.id),
         getTeam(team2.id),
       ]);
       setResult(r);
+      setSeriesResult(series);
       setProfile1(p1);
       setProfile2(p2);
     } catch (e) {
@@ -152,6 +158,56 @@ export default function ComparePage() {
             <p className="text-xs text-muted-foreground">
               Model: {result.model_version}
             </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Bo3 Score Lines */}
+      {seriesResult?.score_probs && result && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm tracking-widest">Bo3 Score Probabilities</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {(() => {
+              const probs = seriesResult.score_probs;
+              const t1 = result.team1.name;
+              const t2 = result.team2.name;
+              const lines = [
+                { label: `${t1} 2-0`, value: probs["2-0"] ?? 0, side: "team1" },
+                { label: `${t1} 2-1`, value: probs["2-1"] ?? 0, side: "team1" },
+                { label: `${t2} 2-1`, value: probs["1-2"] ?? 0, side: "team2" },
+                { label: `${t2} 2-0`, value: probs["0-2"] ?? 0, side: "team2" },
+              ];
+              const maxVal = Math.max(...lines.map((l) => l.value));
+              return (
+                <div className="space-y-2">
+                  {lines.map((line) => (
+                    <div key={line.label} className="flex items-center gap-3">
+                      <span className="text-xs font-medium w-24 text-right shrink-0">
+                        {line.label}
+                      </span>
+                      <div className="flex-1 h-7 bg-muted/30 rounded overflow-hidden relative">
+                        <div
+                          className={`h-full rounded transition-all ${
+                            line.side === "team1" ? "bg-primary" : "bg-accent"
+                          }`}
+                          style={{ width: `${maxVal > 0 ? (line.value / maxVal) * 100 : 0}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-mono font-bold w-12 shrink-0">
+                        {(line.value * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+            {seriesResult.series_win_prob != null && (
+              <p className="text-xs text-muted-foreground pt-2">
+                Series win: {result.team1.name} {(seriesResult.series_win_prob * 100).toFixed(0)}% — {result.team2.name} {((1 - seriesResult.series_win_prob) * 100).toFixed(0)}%
+              </p>
+            )}
           </CardContent>
         </Card>
       )}

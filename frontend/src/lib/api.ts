@@ -145,6 +145,22 @@ export interface AdHocPrediction {
   model_version: string;
 }
 
+export interface MapPrediction {
+  map_name: string;
+  team1_win_prob: number;
+  team2_win_prob: number;
+}
+
+export interface SeriesPrediction {
+  team1: { id: number; name: string };
+  team2: { id: number; name: string };
+  map_predictions: MapPrediction[];
+  score_probs: Record<string, number> | null;
+  series_win_prob: number | null;
+  match_date: string;
+  model_version: string;
+}
+
 export interface FoldMetric {
   month: string;
   accuracy: number;
@@ -224,6 +240,19 @@ export async function predict(body: {
   map_name?: string | null;
 }) {
   return fetchAPI<AdHocPrediction>("/api/predict", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}
+
+export async function predictSeries(body: {
+  team1_id?: number;
+  team2_id?: number;
+  team1?: string;
+  team2?: string;
+}) {
+  return fetchAPI<SeriesPrediction>("/api/predict/series", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

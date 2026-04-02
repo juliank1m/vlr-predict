@@ -205,3 +205,123 @@ def predict_matchup(
         "model_version": bundle.model_version,
         "match_date": cutoff,
     }
+
+
+def _get_common_maps(session: Session, team1_id: int, team2_id: int) -> list[str]:
+    """Get maps both teams have played recently, ordered by combined games played."""
+    rows = session.execute(
+        text("""
+            WITH team_maps AS (
+                SELECT m.map_name, mt.team1_id AS tid, mt.team2_id AS tid2
+                FROM maps m
+                JOIN matches mt ON m.match_id = mt.id
+                WHERE m.map_name IS NOT NULL
+                  AND mt.date IS NOT NULL
+                  AND mt.date > NOW() - INTERVAL '6 months'
+                  AND (mt.team1_id IN (:t1, :t2) OR mt.team2_id IN (:t1, :t2))
+            )
+            SELECT map_name,
+                   COUNT(*) FILTER (WHERE tid = :t1 OR tid2 = :t1) AS t1_games,
+                   COUNT(*) FILTER (WHERE tid = :t2 OR tid2 = :t2) AS t2_games
+            FROM team_maps
+            GROUP BY map_name
+            HAVING COUNT(*) FILTER (WHERE tid = :t1 OR tid2 = :t1) > 0
+               AND COUNT(*) FILTER (WHERE tid = :t2 OR tid2 = :t2) > 0
+            ORDER BY COUNT(*) DESC
+        """),
+        {"t1": team1_id, "t2": team2_id},
+    ).fetchall()
+    return [row[0] for row in rows]
+
+
+def _bo3_score_probs(p1: float, p2: float, p3: float) -> dict[str, float]:
+    """Analytical Bo3 score line probabilities from per-map win probs."""
+    return {
+        "2-0": p1 * p2,
+        "2-1": p1 * (1 - p2) * p3 + (1 - p1) * p2 * p3,
+        "0-2": (1 - p1) * (1 - p2),
+        "1-2": p1 * (1 - p2) * (1 - p3) + (1 - p1) * p2 * (1 - p3),
+    }
+
+
+def predict_series(
+    session: Session,
+    *,
+    team1_id: int,
+    team2_id: int,
+    match_date: datetime | None = None,
+) -> dict[str, Any]:
+    """Predict per-map probabilities and Bo3 score lines for a series."""
+    if team1_id == team2_id:
+        raise ValueError("team1 and team2 must be different teams.")
+
+    bundle = load_model_bundle()
+    cutoff = match_date or datetime.utcnow()
+
+    # Get maps both teams play
+    common_maps = _get_common_maps(session, team1_id, team2_id)
+    if len(common_maps) < 3:
+        # Fall back to most common maps in the DB
+        rows = session.execute(text("""
+            SELECT map_name, COUNT(*) AS cnt
+            FROM maps
+            WHERE map_name IS NOT NULL
+            GROUP BY map_name
+            ORDER BY cnt DESC
+            LIMIT 7
+        """)).fetchall()
+        all_maps = [r[0] for r in rows]
+        # Fill in missing maps
+        for m in all_maps:
+            if m not in common_maps:
+                common_maps.append(m)
+            if len(common_maps) >= 3:
+                break
+
+    # Predict each map
+    map_predictions = []
+    for map_name in common_maps:
+        features = compute_features(
+            session,
+            team1_id=team1_id,
+            team2_id=team2_id,
+            map_name=map_name,
+            match_date=cutoff,
+        )
+        vector = _prepare_vector(features, bundle.feature_names, bundle.imputation_values)
+        prob = _predict_probability(bundle.model, vector)
+        map_predictions.append({
+            "map_name": map_name,
+            "team1_win_prob": prob,
+            "team2_win_prob": 1.0 - prob,
+        })
+
+    # Use top 3 maps for Bo3 score lines
+    top3 = map_predictions[:3] if len(map_predictions) >= 3 else map_predictions
+    if len(top3) == 3:
+        score_probs = _bo3_score_probs(
+            top3[0]["team1_win_prob"],
+            top3[1]["team1_win_prob"],
+            top3[2]["team1_win_prob"],
+        )
+    elif len(top3) == 2:
+        # Bo2-ish: only two maps
+        p1, p2 = top3[0]["team1_win_prob"], top3[1]["team1_win_prob"]
+        score_probs = {"2-0": p1 * p2, "0-2": (1 - p1) * (1 - p2),
+                       "1-1": p1 * (1 - p2) + (1 - p1) * p2}
+    else:
+        score_probs = None
+
+    # Overall series win prob from score lines
+    if score_probs and "2-0" in score_probs and "2-1" in score_probs:
+        series_win_prob = score_probs["2-0"] + score_probs["2-1"]
+    else:
+        series_win_prob = None
+
+    return {
+        "map_predictions": map_predictions,
+        "score_probs": score_probs,
+        "series_win_prob": series_win_prob,
+        "model_version": bundle.model_version,
+        "match_date": cutoff,
+    }
