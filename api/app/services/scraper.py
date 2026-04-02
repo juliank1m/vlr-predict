@@ -608,16 +608,17 @@ def backfill_round_data(cancel_check: callable = None) -> int:
     try:
         while True:
             rows = db.execute(text("""
-                SELECT DISTINCT mt.id, mt.url,
+                SELECT mt.id, mt.url,
                        t1.name AS team1, t2.name AS team2,
                        mt.team1_id, mt.team2_id
                 FROM matches mt
                 JOIN teams t1 ON t1.id = mt.team1_id
                 JOIN teams t2 ON t2.id = mt.team2_id
-                JOIN maps m ON m.match_id = mt.id
                 WHERE mt.url IS NOT NULL
-                  AND NOT EXISTS (
-                      SELECT 1 FROM rounds r WHERE r.map_id = m.id
+                  AND EXISTS (
+                      SELECT 1 FROM maps m
+                      WHERE m.match_id = mt.id
+                        AND NOT EXISTS (SELECT 1 FROM rounds r WHERE r.map_id = m.id)
                   )
                 ORDER BY mt.date DESC NULLS LAST
                 LIMIT :batch_size

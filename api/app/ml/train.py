@@ -497,23 +497,8 @@ def tune_and_save(
                 best_params = params
 
     logger.info("Best config (log-loss=%.4f): %s", best_loss, best_params)
-    logger.info("Training final model with best params...")
+    logger.info("Training candidate model with best params...")
 
-    # Now do full train_and_save with best params by updating build_estimator
-    # Save best params to a file so train_and_save can use them
-    settings = get_settings()
-    tuning_path = resolve_artifact_path(settings.training_metadata_path).parent / "tuning_result.json"
-    tuning_result = {
-        "best_params": best_params,
-        "best_log_loss": best_loss,
-        "all_results": results,
-        "tuned_at": datetime.now(UTC).isoformat(),
-    }
-    tuning_path.write_text(json.dumps(tuning_result, indent=2), encoding="utf-8")
-    logger.info("Tuning results saved to %s", tuning_path)
-
-    # Retrain with best params
-    # Override build_estimator temporarily
     from xgboost import XGBClassifier
 
     train_df = dataset.loc[dataset["month"] < test_month].copy()
@@ -537,10 +522,10 @@ def tune_and_save(
     best_model.fit(X_train_filled, y_train)
     test_probs = best_model.predict_proba(X_test_filled)[:, 1]
     test_metrics = summarize_binary_predictions(y_test, test_probs)
-    logger.info("Test accuracy with best params: %.3f (log-loss: %.4f)",
-                test_metrics["accuracy"], test_metrics["log_loss"])
+    tuned_acc = test_metrics["accuracy"]
+    logger.info("Tuned test accuracy: %.3f (log-loss: %.4f)", tuned_acc, test_metrics["log_loss"])
 
-    # Train on full dataset
+    # Train on full dataset and save as candidate (not active)
     full_imputation = compute_imputation_values(dataset[FEATURE_NAMES])
     X_full = apply_imputation(dataset[FEATURE_NAMES], full_imputation)
     final_model = XGBClassifier(
@@ -551,45 +536,116 @@ def tune_and_save(
     )
     final_model.fit(X_full, dataset["target"])
 
-    # Save artifacts
-    model_path = resolve_artifact_path(settings.model_path)
-    feature_config_path = resolve_artifact_path(settings.feature_config_path)
-    metadata_path = resolve_artifact_path(settings.training_metadata_path)
+    settings = get_settings()
+    artifacts_dir = resolve_artifact_path(settings.model_path).parent
+
+    # Save candidate model separately — does NOT overwrite active model
+    candidate_model_path = artifacts_dir / "model_candidate.joblib"
+    candidate_config_path = artifacts_dir / "feature_config_candidate.json"
+    tuning_path = artifacts_dir / "tuning_result.json"
 
     trained_at = datetime.now(UTC).isoformat()
-    feature_config = {
+    candidate_config = {
         "created_at": trained_at,
         "feature_names": FEATURE_NAMES,
         "imputation_values": full_imputation,
     }
 
-    feature_importances = rank_feature_importance(
-        best_model, FEATURE_NAMES,
-        X_reference=X_test_filled, y_reference=y_test,
-    )
+    # Read current model accuracy for comparison
+    current_metadata_path = resolve_artifact_path(settings.training_metadata_path)
+    current_acc = None
+    if current_metadata_path.exists():
+        try:
+            current_meta = json.loads(current_metadata_path.read_text())
+            current_acc = current_meta.get("test", {}).get("full_model", {}).get("accuracy")
+        except Exception:
+            pass
 
-    metadata = {
-        "trained_at": trained_at,
-        "model_version": "xgb_v1",
-        "model_type": "xgboost",
+    joblib.dump(final_model, candidate_model_path)
+    candidate_config_path.write_text(json.dumps(candidate_config, indent=2), encoding="utf-8")
+
+    tuning_result = {
+        "best_params": best_params,
+        "best_cv_log_loss": best_loss,
+        "tuned_test_accuracy": tuned_acc,
+        "current_test_accuracy": current_acc,
+        "all_results": results,
+        "tuned_at": trained_at,
+        "status": "pending",  # "pending" = waiting for user to accept/reject
+    }
+    tuning_path.write_text(json.dumps(tuning_result, indent=2), encoding="utf-8")
+
+    if current_acc is not None:
+        logger.info("Current model: %.1f%% | Tuned model: %.1f%% — use Accept/Reject in admin panel",
+                     current_acc * 100, tuned_acc * 100)
+    else:
+        logger.info("Tuned model: %.1f%% — use Accept/Reject in admin panel", tuned_acc * 100)
+
+    return {
+        "tuned_test_accuracy": tuned_acc,
+        "current_test_accuracy": current_acc,
         "tuned_params": best_params,
-        "feature_count": len(FEATURE_NAMES),
-        "row_count": int(len(dataset)),
-        "test": {
-            "month": test_month.date().isoformat(),
-            "train_size": int(len(train_df)),
-            "test_size": int(len(test_df)),
-            "full_model": test_metrics,
-            "calibration": calibration_curve_data(y_test, test_probs),
-        },
-        "feature_importances": feature_importances,
+        "status": "pending",
     }
 
-    joblib.dump(final_model, model_path)
-    feature_config_path.write_text(json.dumps(feature_config, indent=2), encoding="utf-8")
-    metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
-    logger.info("Tuned model saved. Test accuracy=%.3f", test_metrics["accuracy"])
-    return metadata
+
+def apply_tuned_model() -> dict[str, Any]:
+    """Promote the candidate tuned model to active."""
+    settings = get_settings()
+    artifacts_dir = resolve_artifact_path(settings.model_path).parent
+    candidate_model = artifacts_dir / "model_candidate.joblib"
+    candidate_config = artifacts_dir / "feature_config_candidate.json"
+    tuning_path = artifacts_dir / "tuning_result.json"
+
+    if not candidate_model.exists():
+        raise FileNotFoundError("No candidate model found. Run Tune Model first.")
+
+    # Overwrite active model with candidate
+    import shutil
+    shutil.copy2(candidate_model, resolve_artifact_path(settings.model_path))
+    shutil.copy2(candidate_config, resolve_artifact_path(settings.feature_config_path))
+
+    # Update tuning status
+    tuning_result = json.loads(tuning_path.read_text())
+    tuning_result["status"] = "accepted"
+    tuning_path.write_text(json.dumps(tuning_result, indent=2), encoding="utf-8")
+
+    # Update training metadata
+    metadata_path = resolve_artifact_path(settings.training_metadata_path)
+    if metadata_path.exists():
+        metadata = json.loads(metadata_path.read_text())
+        metadata["tuned_params"] = tuning_result.get("best_params")
+        metadata["test"]["full_model"]["accuracy"] = tuning_result.get("tuned_test_accuracy")
+        metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+
+    # Clean up candidate files
+    candidate_model.unlink()
+    candidate_config.unlink()
+
+    logger.info("Tuned model accepted and promoted to active.")
+    return {"status": "accepted", "accuracy": tuning_result.get("tuned_test_accuracy")}
+
+
+def reject_tuned_model() -> dict[str, Any]:
+    """Discard the candidate tuned model."""
+    settings = get_settings()
+    artifacts_dir = resolve_artifact_path(settings.model_path).parent
+    candidate_model = artifacts_dir / "model_candidate.joblib"
+    candidate_config = artifacts_dir / "feature_config_candidate.json"
+    tuning_path = artifacts_dir / "tuning_result.json"
+
+    if candidate_model.exists():
+        candidate_model.unlink()
+    if candidate_config.exists():
+        candidate_config.unlink()
+
+    if tuning_path.exists():
+        tuning_result = json.loads(tuning_path.read_text())
+        tuning_result["status"] = "rejected"
+        tuning_path.write_text(json.dumps(tuning_result, indent=2), encoding="utf-8")
+
+    logger.info("Tuned model rejected and discarded.")
+    return {"status": "rejected"}
 
 
 def main() -> None:

@@ -1,13 +1,13 @@
 {
   "best_params": {
-    "n_estimators": 600,
-    "max_depth": 5,
-    "learning_rate": 0.02,
-    "subsample": 0.85,
-    "colsample_bytree": 0.75,
-    "reg_lambda": 1.5
+    "n_estimators": 500,
+    "max_depth": 4,
+    "learning_rate": 0.03,
+    "subsample": 0.8,
+    "colsample_bytree": 0.7,
+    "reg_lambda": 2.0
   },
-  "best_log_loss": 0.6540674790298021,
+  "best_log_loss": 0.6555640680360245,
   "all_results": [
     {
       "config": {
@@ -18,7 +18,7 @@
         "colsample_bytree": 0.8,
         "reg_lambda": 1.0
       },
-      "avg_log_loss": 0.6562736053751551,
+      "avg_log_loss": 0.6575873805753966,
       "folds": 3
     },
     {
@@ -30,7 +30,7 @@
         "colsample_bytree": 0.7,
         "reg_lambda": 2.0
       },
-      "avg_log_loss": 0.6554980935609517,
+      "avg_log_loss": 0.6555640680360245,
       "folds": 3
     },
     {
@@ -42,7 +42,7 @@
         "colsample_bytree": 0.85,
         "reg_lambda": 0.5
       },
-      "avg_log_loss": 0.6586054814453285,
+      "avg_log_loss": 0.65907030181261,
       "folds": 3
     },
     {
@@ -54,7 +54,7 @@
         "colsample_bytree": 0.9,
         "reg_lambda": 1.0
       },
-      "avg_log_loss": 0.6566458017216033,
+      "avg_log_loss": 0.6574967103257867,
       "folds": 3
     },
     {
@@ -66,7 +66,7 @@
         "colsample_bytree": 0.75,
         "reg_lambda": 1.5
       },
-      "avg_log_loss": 0.6540674790298021,
+      "avg_log_loss": 0.6557592103112334,
       "folds": 3
     },
     {
@@ -78,7 +78,7 @@
         "colsample_bytree": 0.8,
         "reg_lambda": 0.8
       },
-      "avg_log_loss": 0.6566660752996235,
+      "avg_log_loss": 0.6594514541386185,
       "folds": 3
     },
     {
@@ -90,7 +90,7 @@
         "colsample_bytree": 0.9,
         "reg_lambda": 1.5
       },
-      "avg_log_loss": 0.6563775531887983,
+      "avg_log_loss": 0.6569502626686258,
       "folds": 3
     },
     {
@@ -102,9 +102,9 @@
         "colsample_bytree": 0.7,
         "reg_lambda": 2.0
       },
-      "avg_log_loss": 0.6580440447059831,
+      "avg_log_loss": 0.6620813060412629,
       "folds": 3
     }
   ],
-  "tuned_at": "2026-04-02T00:00:14.732333+00:00"
+  "tuned_at": "2026-04-02T07:55:46.735071+00:00"
 }

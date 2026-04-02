@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Loader2, CheckCircle, XCircle, Database, Brain, RefreshCw, Terminal, ListChecks, Square } from "lucide-react";
+import { Lock, Loader2, CheckCircle, XCircle, Database, Brain, RefreshCw, Terminal, ListChecks, Square, ThumbsUp, ThumbsDown } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -243,6 +243,48 @@ export default function AdminPage() {
       icon: Brain,
       state: tuneJob,
       action: () => triggerJob("tune", "tune", setTuneJob),
+      extra: tuneJob.status === "completed" && tuneJob.result?.status === "pending" ? (
+        <div className="flex gap-2">
+          <Button
+            size="sm"
+            className="flex-1"
+            onClick={async () => {
+              try {
+                const res = await fetch(`${API_BASE}/api/admin/tune/accept`, {
+                  method: "POST",
+                  headers: authHeader(),
+                });
+                if (res.ok) {
+                  const data = await res.json();
+                  setTuneJob((prev) => ({ ...prev, result: { ...prev.result, status: "accepted", ...data } }));
+                }
+              } catch { /* ignore */ }
+            }}
+          >
+            <ThumbsUp size={14} className="mr-1" />
+            Accept
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            className="flex-1"
+            onClick={async () => {
+              try {
+                const res = await fetch(`${API_BASE}/api/admin/tune/reject`, {
+                  method: "POST",
+                  headers: authHeader(),
+                });
+                if (res.ok) {
+                  setTuneJob((prev) => ({ ...prev, result: { ...prev.result, status: "rejected" } }));
+                }
+              } catch { /* ignore */ }
+            }}
+          >
+            <ThumbsDown size={14} className="mr-1" />
+            Reject
+          </Button>
+        </div>
+      ) : undefined,
     },
     {
       id: "backfill_veto",

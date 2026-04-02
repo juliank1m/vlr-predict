@@ -24,6 +24,7 @@ _cancel_events: dict[str, threading.Event] = {}
 
 # Per-job log buffers (max 500 lines each)
 _logs: dict[str, deque[str]] = {}
+_log_totals: dict[str, int] = {}  # monotonic count of all lines ever appended
 MAX_LOG_LINES = 500
 
 
@@ -40,7 +41,9 @@ class _JobLogHandler(logging.Handler):
         with _lock:
             if self.job_id not in _logs:
                 _logs[self.job_id] = deque(maxlen=MAX_LOG_LINES)
+                _log_totals[self.job_id] = 0
             _logs[self.job_id].append(line)
+            _log_totals[self.job_id] += 1
 
 
 def _verify_admin(credentials: HTTPBasicCredentials = Depends(security)) -> str:
@@ -73,6 +76,7 @@ def _run_in_background(job_id: str, func, **kwargs) -> dict:
     cancel_event = threading.Event()
     with _lock:
         _logs[job_id] = deque(maxlen=MAX_LOG_LINES)
+        _log_totals[job_id] = 0
         _cancel_events[job_id] = cancel_event
 
     def _worker():
@@ -169,7 +173,9 @@ def _job_log(job_id: str, msg: str, *args):
     with _lock:
         if job_id not in _logs:
             _logs[job_id] = deque(maxlen=MAX_LOG_LINES)
+            _log_totals[job_id] = 0
         _logs[job_id].append(line)
+        _log_totals[job_id] += 1
 
 
 def _elo_task() -> dict:
@@ -239,6 +245,20 @@ async def trigger_tune(_user: str = Depends(_verify_admin)):
     return _run_in_background("tune", _tune_task)
 
 
+@router.post("/tune/accept")
+async def accept_tune(_user: str = Depends(_verify_admin)):
+    """Promote tuned candidate model to active."""
+    from app.ml.train import apply_tuned_model
+    return apply_tuned_model()
+
+
+@router.post("/tune/reject")
+async def reject_tune(_user: str = Depends(_verify_admin)):
+    """Discard tuned candidate model."""
+    from app.ml.train import reject_tuned_model
+    return reject_tuned_model()
+
+
 @router.post("/backfill-rounds")
 async def trigger_backfill_rounds(_user: str = Depends(_verify_admin)):
     """Backfill round-by-round data for all matches."""
@@ -298,5 +318,10 @@ async def get_logs(
         buf = _logs.get(job_id)
         if buf is None:
             return {"lines": [], "total": 0}
+        total = _log_totals.get(job_id, 0)
         all_lines = list(buf)
-        return {"lines": all_lines[since:], "total": len(all_lines)}
+        # since is a monotonic counter; deque only holds the last MAX_LOG_LINES
+        # Calculate how many lines from the deque the client hasn't seen
+        dropped = total - len(all_lines)
+        offset = max(0, since - dropped)
+        return {"lines": all_lines[offset:], "total": total}
