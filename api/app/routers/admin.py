@@ -186,6 +186,24 @@ def _backfill_veto_task() -> dict:
     return {"matches_updated": count}
 
 
+def _tune_task() -> dict:
+    from app.ml.train import tune_and_save
+
+    _job_log("tune", "Starting hyperparameter tuning...")
+    metadata = tune_and_save(cancel_check=lambda: check_cancelled("tune"))
+    _job_log("tune", "Tuning complete")
+    return {
+        "test_accuracy": metadata.get("test", {}).get("full_model", {}).get("accuracy"),
+        "tuned_params": metadata.get("tuned_params"),
+    }
+
+
+def _backfill_rounds_task() -> dict:
+    from app.services.scraper import backfill_round_data
+    count = backfill_round_data(cancel_check=lambda: check_cancelled("backfill_rounds"))
+    return {"maps_updated": count}
+
+
 @router.post("/scrape")
 async def trigger_scrape(
     pages: int = Query(5, ge=1, le=100),
@@ -213,6 +231,18 @@ async def trigger_backfill_veto(
 ):
     """Backfill veto data for all existing matches."""
     return _run_in_background("backfill_veto", _backfill_veto_task)
+
+
+@router.post("/tune")
+async def trigger_tune(_user: str = Depends(_verify_admin)):
+    """Run hyperparameter tuning."""
+    return _run_in_background("tune", _tune_task)
+
+
+@router.post("/backfill-rounds")
+async def trigger_backfill_rounds(_user: str = Depends(_verify_admin)):
+    """Backfill round-by-round data for all matches."""
+    return _run_in_background("backfill_rounds", _backfill_rounds_task)
 
 
 @router.post("/backfill-logos")

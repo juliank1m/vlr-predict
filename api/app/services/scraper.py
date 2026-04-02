@@ -18,7 +18,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.database import SyncSessionLocal
-from app.models import Map, MapVeto, Match, Player, PlayerMapStat, Team
+from app.models import Map, MapVeto, Match, Player, PlayerMapStat, Round, Team
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +122,66 @@ def _extract_veto(soup: BeautifulSoup, match: dict) -> list[dict]:
 
     return vetos
 
+
+
+def _extract_rounds(panel: Tag, game: dict, team1_id: int, team2_id: int) -> list[dict]:
+    """Parse round-by-round results from a game panel's .vlr-rounds element."""
+    rounds_el = panel.select_one(".vlr-rounds")
+    if not rounds_el:
+        return []
+
+    results = []
+    for col in rounds_el.select(".vlr-rounds-row-col[title]"):
+        title = col.get("title", "").strip()
+        if not title:
+            continue  # unplayed round
+
+        rnd_num_el = col.select_one(".rnd-num")
+        if not rnd_num_el:
+            continue
+        round_number = _to_int(rnd_num_el.get_text(strip=True))
+        if not round_number:
+            continue
+
+        parts = title.split("-")
+        if len(parts) != 2:
+            continue
+        t1_score = _to_int(parts[0])
+        t2_score = _to_int(parts[1])
+        if t1_score is None or t2_score is None:
+            continue
+
+        squares = col.select(".rnd-sq")
+        winner_team_id = None
+        team1_side = None
+        win_type = None
+
+        for i, sq in enumerate(squares[:2]):
+            classes = sq.get("class", [])
+            if "mod-win" not in classes:
+                continue
+            winner_team_id = team1_id if i == 0 else team2_id
+            is_ct = "mod-ct" in classes
+            is_t = "mod-t" in classes
+            if i == 0:  # team1 won
+                team1_side = "ct" if is_ct else ("t" if is_t else None)
+            else:  # team2 won
+                team1_side = "t" if is_ct else ("ct" if is_t else None)
+            img = sq.select_one("img[src]")
+            if img:
+                win_type = img.get("src", "").split("/")[-1].replace(".webp", "")
+
+        results.append({
+            "map_id": game["game_id"],
+            "round_number": round_number,
+            "winner_team_id": winner_team_id,
+            "team1_side": team1_side,
+            "win_type": win_type,
+            "team1_score_after": t1_score,
+            "team2_score_after": t2_score,
+        })
+
+    return results
 
 
 def _normalize(value: str | None) -> str | None:
@@ -537,6 +597,98 @@ def backfill_veto_data(batch_size: int = 200, cancel_check: callable = None) -> 
         db.close()
 
 
+def backfill_round_data(cancel_check: callable = None) -> int:
+    """Backfill round-by-round data for all maps missing it. Returns count of maps updated."""
+    http = requests.Session()
+    http.headers.update(HEADERS)
+    db = SyncSessionLocal()
+    total_updated = 0
+    batch_size = 200
+
+    try:
+        while True:
+            rows = db.execute(text("""
+                SELECT DISTINCT mt.id, mt.url,
+                       t1.name AS team1, t2.name AS team2,
+                       mt.team1_id, mt.team2_id
+                FROM matches mt
+                JOIN teams t1 ON t1.id = mt.team1_id
+                JOIN teams t2 ON t2.id = mt.team2_id
+                JOIN maps m ON m.match_id = mt.id
+                WHERE mt.url IS NOT NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM rounds r WHERE r.map_id = m.id
+                  )
+                ORDER BY mt.date DESC NULLS LAST
+                LIMIT :batch_size
+            """), {"batch_size": batch_size}).fetchall()
+
+            if not rows:
+                break
+
+            logger.info("Backfilling rounds for %d matches (%d maps updated so far)...", len(rows), total_updated)
+
+            for row in rows:
+                if cancel_check:
+                    cancel_check()
+                match_id, url, team1, team2, t1_id, t2_id = row
+                logger.info("Backfill rounds: match %d (%s vs %s)", match_id, team1, team2)
+                try:
+                    soup = _fetch(http, url)
+                    panel_lookup = {}
+                    for p in soup.select(".vm-stats-game[data-game-id]"):
+                        gid = p.get("data-game-id")
+                        if gid and gid != "all":
+                            panel_lookup[gid] = p
+
+                    maps = db.execute(
+                        text("SELECT id FROM maps WHERE match_id = :mid"),
+                        {"mid": match_id},
+                    ).fetchall()
+
+                    for (map_id,) in maps:
+                        panel = panel_lookup.get(str(map_id))
+                        if panel:
+                            game = {"game_id": map_id}
+                            round_rows = _extract_rounds(panel, game, t1_id, t2_id)
+                            if round_rows:
+                                for r in round_rows:
+                                    db.add(Round(**r))
+                                total_updated += 1
+                            else:
+                                # Sentinel: no round data on page
+                                db.add(Round(
+                                    map_id=map_id, round_number=0,
+                                    winner_team_id=None, team1_side=None,
+                                    win_type=None, team1_score_after=0,
+                                    team2_score_after=0,
+                                ))
+                        else:
+                            # Panel not found — insert sentinel
+                            db.add(Round(
+                                map_id=map_id, round_number=0,
+                                winner_team_id=None, team1_side=None,
+                                win_type=None, team1_score_after=0,
+                                team2_score_after=0,
+                            ))
+
+                    time.sleep(0.5)
+                except Exception:
+                    logger.exception("Failed to backfill rounds for match %d", match_id)
+                    continue
+
+            db.commit()
+            logger.info("Batch committed. %d maps with rounds so far.", total_updated)
+
+        logger.info("Round backfill complete: %d maps updated.", total_updated)
+        return total_updated
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
 def scrape_recent_matches(pages: int = 3, cancel_check: callable = None) -> int:
     """Scrape recent VLR results and insert new matches into the database.
 
@@ -635,6 +787,19 @@ def scrape_recent_matches(pages: int = 3, cancel_check: callable = None) -> int:
                                             text("UPDATE maps SET picked_by = :team_id WHERE id = :map_id"),
                                             {"team_id": veto_team_id, "map_id": g["game_id"]},
                                         )
+
+                    # Extract round-by-round data
+                    if t1_id and t2_id:
+                        panel_lookup = {}
+                        for p in detail_soup.select(".vm-stats-game[data-game-id]"):
+                            gid = p.get("data-game-id")
+                            if gid and gid != "all":
+                                panel_lookup[gid] = p
+                        for g in games:
+                            panel = panel_lookup.get(str(g["game_id"]))
+                            if panel:
+                                for r in _extract_rounds(panel, g, t1_id, t2_id):
+                                    db.add(Round(**r))
 
                     existing_ids.add(match["match_id"])
                     new_count += 1

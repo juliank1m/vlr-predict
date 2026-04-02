@@ -71,6 +71,12 @@ FEATURE_NAMES += [
 FEATURE_NAMES += [
     "team1_map_elo", "team2_map_elo", "map_elo_diff",
 ]
+FEATURE_NAMES += [
+    "team1_pistol_wr", "team2_pistol_wr", "pistol_wr_diff",
+    "team1_attack_wr", "team2_attack_wr", "attack_wr_diff",
+    "team1_defense_wr", "team2_defense_wr", "defense_wr_diff",
+    "team1_comeback_rate", "team2_comeback_rate",
+]
 
 # ---------------------------------------------------------------------------
 # SQL Templates (module-level for reuse across calls)
@@ -241,6 +247,93 @@ _PICK_WIN_RATE_SQL = text("""
       AND mt.date < :match_date
 """)
 
+_ROUND_STATS_SQL = text("""
+    WITH recent_maps AS (
+        SELECT m.id AS map_id, mt.team1_id, mt.team2_id
+        FROM maps m
+        JOIN matches mt ON m.match_id = mt.id
+        WHERE (mt.team1_id = :team_id OR mt.team2_id = :team_id)
+          AND mt.date IS NOT NULL
+          AND mt.date < :match_date
+        ORDER BY mt.date DESC, m.map_number DESC
+        LIMIT 20
+    ),
+    round_data AS (
+        SELECT
+            r.round_number,
+            r.winner_team_id,
+            r.team1_side,
+            rm.team1_id AS match_team1_id,
+            rm.team2_id AS match_team2_id
+        FROM rounds r
+        JOIN recent_maps rm ON r.map_id = rm.map_id
+        WHERE r.round_number > 0
+    )
+    SELECT
+        COUNT(*) FILTER (WHERE round_number IN (1, 13)),
+        COUNT(*) FILTER (WHERE round_number IN (1, 13) AND winner_team_id = :team_id),
+        COUNT(*) FILTER (WHERE
+            (match_team1_id = :team_id AND team1_side = 't')
+            OR (match_team2_id = :team_id AND team1_side = 'ct')
+        ),
+        COUNT(*) FILTER (WHERE
+            winner_team_id = :team_id AND (
+                (match_team1_id = :team_id AND team1_side = 't')
+                OR (match_team2_id = :team_id AND team1_side = 'ct')
+            )
+        ),
+        COUNT(*) FILTER (WHERE
+            (match_team1_id = :team_id AND team1_side = 'ct')
+            OR (match_team2_id = :team_id AND team1_side = 't')
+        ),
+        COUNT(*) FILTER (WHERE
+            winner_team_id = :team_id AND (
+                (match_team1_id = :team_id AND team1_side = 'ct')
+                OR (match_team2_id = :team_id AND team1_side = 't')
+            )
+        )
+    FROM round_data
+""")
+
+_COMEBACK_SQL = text("""
+    WITH recent_maps AS (
+        SELECT m.id AS map_id, m.winner_id, mt.team1_id, mt.team2_id
+        FROM maps m
+        JOIN matches mt ON m.match_id = mt.id
+        WHERE (mt.team1_id = :team_id OR mt.team2_id = :team_id)
+          AND mt.date IS NOT NULL
+          AND mt.date < :match_date
+          AND m.winner_id IS NOT NULL
+        ORDER BY mt.date DESC, m.map_number DESC
+        LIMIT 20
+    ),
+    halftime_scores AS (
+        SELECT
+            rm.map_id,
+            rm.winner_id,
+            rm.team1_id,
+            rm.team2_id,
+            MAX(r.team1_score_after) FILTER (WHERE r.round_number = 12) AS t1_half,
+            MAX(r.team2_score_after) FILTER (WHERE r.round_number = 12) AS t2_half
+        FROM recent_maps rm
+        JOIN rounds r ON r.map_id = rm.map_id
+        WHERE r.round_number > 0
+        GROUP BY rm.map_id, rm.winner_id, rm.team1_id, rm.team2_id
+    )
+    SELECT
+        COUNT(*) FILTER (WHERE
+            (team1_id = :team_id AND t1_half < t2_half)
+            OR (team2_id = :team_id AND t2_half < t1_half)
+        ),
+        COUNT(*) FILTER (WHERE
+            winner_id = :team_id AND (
+                (team1_id = :team_id AND t1_half < t2_half)
+                OR (team2_id = :team_id AND t2_half < t1_half)
+            )
+        )
+    FROM halftime_scores
+""")
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -285,6 +378,7 @@ def compute_features(
     f.update(_recency_features(session, team1_id, team2_id, match_date))
     f.update(_roster_features(session, team1_id, team2_id, match_date))
     f.update(_pick_ban_features(session, team1_id, team2_id, map_id, match_date))
+    f.update(_round_features(session, team1_id, team2_id, match_date))
 
     return f
 
@@ -605,5 +699,46 @@ def _pick_ban_features(
         ).fetchone()
         if row and row.total and row.total >= 3:
             f[f"{label}_pick_win_rate"] = float(row.wins) / float(row.total)
+
+    return f
+
+
+def _round_features(
+    session: Session, team1_id: int, team2_id: int, match_date: datetime,
+) -> dict[str, float | None]:
+    """Compute round-based features: pistol WR, attack/defense WR, comeback rate."""
+    f: dict[str, float | None] = {}
+
+    for label, tid in (("team1", team1_id), ("team2", team2_id)):
+        row = session.execute(
+            _ROUND_STATS_SQL, {"team_id": tid, "match_date": match_date},
+        ).fetchone()
+
+        if not row or not row[0]:
+            f[f"{label}_pistol_wr"] = None
+            f[f"{label}_attack_wr"] = None
+            f[f"{label}_defense_wr"] = None
+        else:
+            pistol_total, pistol_wins = row[0], row[1]
+            atk_total, atk_wins = row[2], row[3]
+            def_total, def_wins = row[4], row[5]
+
+            f[f"{label}_pistol_wr"] = pistol_wins / pistol_total if pistol_total >= 4 else None
+            f[f"{label}_attack_wr"] = atk_wins / atk_total if atk_total >= 20 else None
+            f[f"{label}_defense_wr"] = def_wins / def_total if def_total >= 20 else None
+
+        cb_row = session.execute(
+            _COMEBACK_SQL, {"team_id": tid, "match_date": match_date},
+        ).fetchone()
+
+        if cb_row and cb_row[0] and cb_row[0] >= 3:
+            f[f"{label}_comeback_rate"] = cb_row[1] / cb_row[0]
+        else:
+            f[f"{label}_comeback_rate"] = None
+
+    for key in ("pistol_wr", "attack_wr", "defense_wr"):
+        t1 = f.get(f"team1_{key}")
+        t2 = f.get(f"team2_{key}")
+        f[f"{key}_diff"] = (t1 - t2) if (t1 is not None and t2 is not None) else None
 
     return f

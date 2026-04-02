@@ -7,6 +7,7 @@ from app.models.match import Match
 from app.models.player import Player
 from app.models.player_map_stat import PlayerMapStat
 from app.models.prediction import Prediction
+from app.models.round import Round
 from app.models.team import Team
 from app.models.team_elo import TeamElo
 
@@ -18,6 +19,7 @@ __all__ = [
     "Player",
     "PlayerMapStat",
     "Prediction",
+    "Round",
     "Team",
     "TeamElo",
 ]

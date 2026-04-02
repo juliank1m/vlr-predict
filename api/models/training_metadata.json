@@ -1,1484 +1,25 @@
 {
-  "trained_at": "2026-04-01T06:15:46.554139+00:00",
+  "trained_at": "2026-04-02T00:00:17.768124+00:00",
   "model_version": "xgb_v1",
   "model_type": "xgboost",
-  "warning": null,
-  "feature_count": 68,
-  "row_count": 65317,
-  "date_range": {
-    "start": "2020-04-25T00:00:00",
-    "end": "2026-03-31T16:00:00"
+  "tuned_params": {
+    "n_estimators": 600,
+    "max_depth": 5,
+    "learning_rate": 0.02,
+    "subsample": 0.85,
+    "colsample_bytree": 0.75,
+    "reg_lambda": 1.5
   },
-  "temporal_cv": {
-    "min_train_months": 6,
-    "folds": [
-      {
-        "train_end_month": "2020-09-01",
-        "validate_month": "2020-10-01",
-        "train_size": 2777,
-        "validate_size": 1053,
-        "coin_flip": {
-          "log_loss": 0.6931471805599452,
-          "brier_score": 0.25,
-          "accuracy": 0.5612535612535613
-        },
-        "elo_only": {
-          "log_loss": 0.6551959053150523,
-          "brier_score": 0.23128263611198022,
-          "accuracy": 0.6077872744539411
-        },
-        "full_model": {
-          "log_loss": 0.6966041311374903,
-          "brier_score": 0.2431876820405961,
-          "accuracy": 0.6125356125356125
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2020-10-01",
-        "validate_month": "2020-11-01",
-        "train_size": 3830,
-        "validate_size": 1518,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.6001317523056654
-        },
-        "elo_only": {
-          "log_loss": 0.6401597812484197,
-          "brier_score": 0.22484967117739826,
-          "accuracy": 0.6310935441370223
-        },
-        "full_model": {
-          "log_loss": 0.6404263245100447,
-          "brier_score": 0.22472232113794705,
-          "accuracy": 0.6310935441370223
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2020-11-01",
-        "validate_month": "2020-12-01",
-        "train_size": 5348,
-        "validate_size": 1192,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5570469798657718
-        },
-        "elo_only": {
-          "log_loss": 0.6340030972155082,
-          "brier_score": 0.22252026109190098,
-          "accuracy": 0.6098993288590604
-        },
-        "full_model": {
-          "log_loss": 0.6455808916445095,
-          "brier_score": 0.22598379459295453,
-          "accuracy": 0.6283557046979866
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2020-12-01",
-        "validate_month": "2021-01-01",
-        "train_size": 6540,
-        "validate_size": 1203,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5943474646716542
-        },
-        "elo_only": {
-          "log_loss": 0.6445609326468362,
-          "brier_score": 0.2267810559836716,
-          "accuracy": 0.6292601828761429
-        },
-        "full_model": {
-          "log_loss": 0.6623750006494272,
-          "brier_score": 0.23304578079783847,
-          "accuracy": 0.6192851205320034
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2021-01-01",
-        "validate_month": "2021-02-01",
-        "train_size": 7743,
-        "validate_size": 1584,
-        "coin_flip": {
-          "log_loss": 0.6931471805599452,
-          "brier_score": 0.25,
-          "accuracy": 0.5555555555555556
-        },
-        "elo_only": {
-          "log_loss": 0.6210462981903216,
-          "brier_score": 0.21713373375265563,
-          "accuracy": 0.6508838383838383
-        },
-        "full_model": {
-          "log_loss": 0.6415353167804096,
-          "brier_score": 0.22388906446269236,
-          "accuracy": 0.6477272727272727
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2021-02-01",
-        "validate_month": "2021-03-01",
-        "train_size": 9327,
-        "validate_size": 1134,
-        "coin_flip": {
-          "log_loss": 0.6931471805599454,
-          "brier_score": 0.25,
-          "accuracy": 0.5211640211640212
-        },
-        "elo_only": {
-          "log_loss": 0.6193603706419101,
-          "brier_score": 0.2161446496698844,
-          "accuracy": 0.6419753086419753
-        },
-        "full_model": {
-          "log_loss": 0.6199858250242322,
-          "brier_score": 0.21670998304691333,
-          "accuracy": 0.63668430335097
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2021-03-01",
-        "validate_month": "2021-04-01",
-        "train_size": 10461,
-        "validate_size": 1835,
-        "coin_flip": {
-          "log_loss": 0.6931471805599452,
-          "brier_score": 0.25,
-          "accuracy": 0.5967302452316077
-        },
-        "elo_only": {
-          "log_loss": 0.599585720077895,
-          "brier_score": 0.20675532300380628,
-          "accuracy": 0.6566757493188011
-        },
-        "full_model": {
-          "log_loss": 0.6041061700161271,
-          "brier_score": 0.20827257132705057,
-          "accuracy": 0.6768392370572207
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2021-04-01",
-        "validate_month": "2021-05-01",
-        "train_size": 12296,
-        "validate_size": 864,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5879629629629629
-        },
-        "elo_only": {
-          "log_loss": 0.6294863335975488,
-          "brier_score": 0.21971940245281354,
-          "accuracy": 0.6423611111111112
-        },
-        "full_model": {
-          "log_loss": 0.6203032205441565,
-          "brier_score": 0.21664018758969097,
-          "accuracy": 0.6504629629629629
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2021-05-01",
-        "validate_month": "2021-06-01",
-        "train_size": 13160,
-        "validate_size": 1449,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.6231884057971014
-        },
-        "elo_only": {
-          "log_loss": 0.610076653713597,
-          "brier_score": 0.2106133323553996,
-          "accuracy": 0.6673567977915804
-        },
-        "full_model": {
-          "log_loss": 0.6134570887978703,
-          "brier_score": 0.21129584345077718,
-          "accuracy": 0.665976535541753
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2021-06-01",
-        "validate_month": "2021-07-01",
-        "train_size": 14609,
-        "validate_size": 1954,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.6013306038894575
-        },
-        "elo_only": {
-          "log_loss": 0.5985751509611743,
-          "brier_score": 0.20628355572211166,
-          "accuracy": 0.6704196519959058
-        },
-        "full_model": {
-          "log_loss": 0.6116767126050583,
-          "brier_score": 0.21188449148180327,
-          "accuracy": 0.6683725690890481
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2021-07-01",
-        "validate_month": "2021-08-01",
-        "train_size": 16563,
-        "validate_size": 1305,
-        "coin_flip": {
-          "log_loss": 0.6931471805599452,
-          "brier_score": 0.25,
-          "accuracy": 0.5678160919540229
-        },
-        "elo_only": {
-          "log_loss": 0.6383062555492756,
-          "brier_score": 0.22214987913613876,
-          "accuracy": 0.6314176245210728
-        },
-        "full_model": {
-          "log_loss": 0.6337683675623182,
-          "brier_score": 0.21928913198224367,
-          "accuracy": 0.6459770114942529
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2021-08-01",
-        "validate_month": "2021-09-01",
-        "train_size": 17868,
-        "validate_size": 703,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.6088193456614509
-        },
-        "elo_only": {
-          "log_loss": 0.6511102690049593,
-          "brier_score": 0.22870134779284138,
-          "accuracy": 0.631578947368421
-        },
-        "full_model": {
-          "log_loss": 0.6530293236077318,
-          "brier_score": 0.22937900239869763,
-          "accuracy": 0.6386913229018493
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2021-09-01",
-        "validate_month": "2021-10-01",
-        "train_size": 18571,
-        "validate_size": 1016,
-        "coin_flip": {
-          "log_loss": 0.6931471805599454,
-          "brier_score": 0.25,
-          "accuracy": 0.5688976377952756
-        },
-        "elo_only": {
-          "log_loss": 0.6371535617939383,
-          "brier_score": 0.2220682636151826,
-          "accuracy": 0.6496062992125984
-        },
-        "full_model": {
-          "log_loss": 0.6333346162383687,
-          "brier_score": 0.2200322879734878,
-          "accuracy": 0.6476377952755905
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2021-10-01",
-        "validate_month": "2021-11-01",
-        "train_size": 19587,
-        "validate_size": 1616,
-        "coin_flip": {
-          "log_loss": 0.6931471805599452,
-          "brier_score": 0.25,
-          "accuracy": 0.593440594059406
-        },
-        "elo_only": {
-          "log_loss": 0.6248333314607089,
-          "brier_score": 0.21669610920163113,
-          "accuracy": 0.6528465346534653
-        },
-        "full_model": {
-          "log_loss": 0.6233706884498736,
-          "brier_score": 0.21642644200147032,
-          "accuracy": 0.6658415841584159
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2021-11-01",
-        "validate_month": "2021-12-01",
-        "train_size": 21203,
-        "validate_size": 688,
-        "coin_flip": {
-          "log_loss": 0.6931471805599454,
-          "brier_score": 0.25,
-          "accuracy": 0.5813953488372093
-        },
-        "elo_only": {
-          "log_loss": 0.6595013619248159,
-          "brier_score": 0.23227280541241802,
-          "accuracy": 0.5988372093023255
-        },
-        "full_model": {
-          "log_loss": 0.6639364621144582,
-          "brier_score": 0.23388004232338191,
-          "accuracy": 0.6061046511627907
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2021-12-01",
-        "validate_month": "2022-01-01",
-        "train_size": 21891,
-        "validate_size": 2261,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.6377708978328174
-        },
-        "elo_only": {
-          "log_loss": 0.5780106251433076,
-          "brier_score": 0.19791214252702782,
-          "accuracy": 0.6824413976116762
-        },
-        "full_model": {
-          "log_loss": 0.5648897665252106,
-          "brier_score": 0.1921920499496817,
-          "accuracy": 0.6948252985404688
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2022-01-01",
-        "validate_month": "2022-02-01",
-        "train_size": 24152,
-        "validate_size": 1746,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5830469644902635
-        },
-        "elo_only": {
-          "log_loss": 0.6223590805734281,
-          "brier_score": 0.2158916100071654,
-          "accuracy": 0.6597938144329897
-        },
-        "full_model": {
-          "log_loss": 0.6107095768087396,
-          "brier_score": 0.21261952184902821,
-          "accuracy": 0.6540664375715922
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2022-02-01",
-        "validate_month": "2022-03-01",
-        "train_size": 25898,
-        "validate_size": 1235,
-        "coin_flip": {
-          "log_loss": 0.6931471805599454,
-          "brier_score": 0.25,
-          "accuracy": 0.5489878542510122
-        },
-        "elo_only": {
-          "log_loss": 0.6965753308561462,
-          "brier_score": 0.24679877208800372,
-          "accuracy": 0.5910931174089069
-        },
-        "full_model": {
-          "log_loss": 0.6767951783503788,
-          "brier_score": 0.24164235450179916,
-          "accuracy": 0.5757085020242915
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2022-03-01",
-        "validate_month": "2022-04-01",
-        "train_size": 27133,
-        "validate_size": 1135,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.6052863436123348
-        },
-        "elo_only": {
-          "log_loss": 0.6272085288226016,
-          "brier_score": 0.21724289020830803,
-          "accuracy": 0.6651982378854625
-        },
-        "full_model": {
-          "log_loss": 0.6060789877930103,
-          "brier_score": 0.21051918641418493,
-          "accuracy": 0.6440528634361233
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2022-04-01",
-        "validate_month": "2022-05-01",
-        "train_size": 28268,
-        "validate_size": 2010,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5512437810945273
-        },
-        "elo_only": {
-          "log_loss": 0.6248000594542148,
-          "brier_score": 0.21691125194706543,
-          "accuracy": 0.6557213930348259
-        },
-        "full_model": {
-          "log_loss": 0.6131224583880424,
-          "brier_score": 0.21285355267439007,
-          "accuracy": 0.6577114427860696
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2022-05-01",
-        "validate_month": "2022-06-01",
-        "train_size": 30278,
-        "validate_size": 1178,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5492359932088285
-        },
-        "elo_only": {
-          "log_loss": 0.6393555113919288,
-          "brier_score": 0.2247556911271739,
-          "accuracy": 0.6383701188455009
-        },
-        "full_model": {
-          "log_loss": 0.6425332714889799,
-          "brier_score": 0.22657309763092162,
-          "accuracy": 0.6196943972835314
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2022-06-01",
-        "validate_month": "2022-07-01",
-        "train_size": 31456,
-        "validate_size": 822,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5766423357664233
-        },
-        "elo_only": {
-          "log_loss": 0.6720093509101183,
-          "brier_score": 0.23242774824676218,
-          "accuracy": 0.6301703163017032
-        },
-        "full_model": {
-          "log_loss": 0.6526660878105259,
-          "brier_score": 0.22991567595522514,
-          "accuracy": 0.6265206812652068
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2022-07-01",
-        "validate_month": "2022-08-01",
-        "train_size": 32278,
-        "validate_size": 767,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5514993481095176
-        },
-        "elo_only": {
-          "log_loss": 0.7064978474176401,
-          "brier_score": 0.25277356121728245,
-          "accuracy": 0.5580182529335072
-        },
-        "full_model": {
-          "log_loss": 0.6812267762095934,
-          "brier_score": 0.24225035237875514,
-          "accuracy": 0.5880052151238592
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2022-08-01",
-        "validate_month": "2022-09-01",
-        "train_size": 33045,
-        "validate_size": 446,
-        "coin_flip": {
-          "log_loss": 0.6931471805599454,
-          "brier_score": 0.25,
-          "accuracy": 0.6053811659192825
-        },
-        "elo_only": {
-          "log_loss": 0.6261659647862929,
-          "brier_score": 0.21407992279858878,
-          "accuracy": 0.6838565022421524
-        },
-        "full_model": {
-          "log_loss": 0.6174055856099901,
-          "brier_score": 0.2129758445836814,
-          "accuracy": 0.6860986547085202
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2022-09-01",
-        "validate_month": "2022-10-01",
-        "train_size": 33491,
-        "validate_size": 767,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.559322033898305
-        },
-        "elo_only": {
-          "log_loss": 0.6401388992881716,
-          "brier_score": 0.22269288884576474,
-          "accuracy": 0.6610169491525424
-        },
-        "full_model": {
-          "log_loss": 0.6305560265544718,
-          "brier_score": 0.2194261694513499,
-          "accuracy": 0.6479791395045632
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2022-10-01",
-        "validate_month": "2022-11-01",
-        "train_size": 34258,
-        "validate_size": 698,
-        "coin_flip": {
-          "log_loss": 0.6931471805599454,
-          "brier_score": 0.25,
-          "accuracy": 0.5644699140401146
-        },
-        "elo_only": {
-          "log_loss": 0.6781173794513594,
-          "brier_score": 0.24012815458038395,
-          "accuracy": 0.6060171919770774
-        },
-        "full_model": {
-          "log_loss": 0.6569742923970391,
-          "brier_score": 0.23172052989097383,
-          "accuracy": 0.6146131805157593
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2022-11-01",
-        "validate_month": "2022-12-01",
-        "train_size": 34956,
-        "validate_size": 762,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5748031496062992
-        },
-        "elo_only": {
-          "log_loss": 0.6506132535191085,
-          "brier_score": 0.22640895015702506,
-          "accuracy": 0.6338582677165354
-        },
-        "full_model": {
-          "log_loss": 0.6432127621858941,
-          "brier_score": 0.22497430000115268,
-          "accuracy": 0.6272965879265092
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2022-12-01",
-        "validate_month": "2023-01-01",
-        "train_size": 35718,
-        "validate_size": 1117,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5577439570277529
-        },
-        "elo_only": {
-          "log_loss": 0.6548068269273105,
-          "brier_score": 0.23166358780602295,
-          "accuracy": 0.6007162041181737
-        },
-        "full_model": {
-          "log_loss": 0.6417615304675384,
-          "brier_score": 0.2257763702595724,
-          "accuracy": 0.6150402864816473
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2023-01-01",
-        "validate_month": "2023-02-01",
-        "train_size": 36835,
-        "validate_size": 1105,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5058823529411764
-        },
-        "elo_only": {
-          "log_loss": 0.6282532511697447,
-          "brier_score": 0.2180844294015051,
-          "accuracy": 0.6407239819004525
-        },
-        "full_model": {
-          "log_loss": 0.6194752179622282,
-          "brier_score": 0.2151859243899318,
-          "accuracy": 0.6515837104072398
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2023-02-01",
-        "validate_month": "2023-03-01",
-        "train_size": 37940,
-        "validate_size": 1176,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5544217687074829
-        },
-        "elo_only": {
-          "log_loss": 0.6520375907997514,
-          "brier_score": 0.2286573125255422,
-          "accuracy": 0.6181972789115646
-        },
-        "full_model": {
-          "log_loss": 0.6444984757977027,
-          "brier_score": 0.2257947946921601,
-          "accuracy": 0.6301020408163265
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2023-03-01",
-        "validate_month": "2023-04-01",
-        "train_size": 39116,
-        "validate_size": 1484,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5377358490566038
-        },
-        "elo_only": {
-          "log_loss": 0.6273464366495526,
-          "brier_score": 0.21684755960513732,
-          "accuracy": 0.6590296495956873
-        },
-        "full_model": {
-          "log_loss": 0.6113953152067587,
-          "brier_score": 0.21107633403822115,
-          "accuracy": 0.6610512129380054
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2023-04-01",
-        "validate_month": "2023-05-01",
-        "train_size": 40600,
-        "validate_size": 1125,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5164444444444445
-        },
-        "elo_only": {
-          "log_loss": 0.6310889747505302,
-          "brier_score": 0.21957500898545748,
-          "accuracy": 0.6524444444444445
-        },
-        "full_model": {
-          "log_loss": 0.6256889832578605,
-          "brier_score": 0.21781304876407936,
-          "accuracy": 0.6462222222222223
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2023-05-01",
-        "validate_month": "2023-06-01",
-        "train_size": 41725,
-        "validate_size": 642,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5467289719626168
-        },
-        "elo_only": {
-          "log_loss": 0.6735188350038293,
-          "brier_score": 0.23965166977083774,
-          "accuracy": 0.5887850467289719
-        },
-        "full_model": {
-          "log_loss": 0.6602112253846356,
-          "brier_score": 0.23277420086395922,
-          "accuracy": 0.6152647975077882
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2023-06-01",
-        "validate_month": "2023-07-01",
-        "train_size": 42367,
-        "validate_size": 646,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5386996904024768
-        },
-        "elo_only": {
-          "log_loss": 0.6450408283328161,
-          "brier_score": 0.22759960572559865,
-          "accuracy": 0.631578947368421
-        },
-        "full_model": {
-          "log_loss": 0.6425696046318373,
-          "brier_score": 0.22529122020795397,
-          "accuracy": 0.6424148606811145
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2023-07-01",
-        "validate_month": "2023-08-01",
-        "train_size": 43013,
-        "validate_size": 148,
-        "coin_flip": {
-          "log_loss": 0.6931471805599454,
-          "brier_score": 0.25,
-          "accuracy": 0.5945945945945946
-        },
-        "elo_only": {
-          "log_loss": 0.660429529489145,
-          "brier_score": 0.2341772597573754,
-          "accuracy": 0.6216216216216216
-        },
-        "full_model": {
-          "log_loss": 0.6529277107203183,
-          "brier_score": 0.23113174033179448,
-          "accuracy": 0.6148648648648649
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2023-08-01",
-        "validate_month": "2023-09-01",
-        "train_size": 43161,
-        "validate_size": 964,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.6026970954356846
-        },
-        "elo_only": {
-          "log_loss": 0.6487888391672236,
-          "brier_score": 0.22827245952739791,
-          "accuracy": 0.5975103734439834
-        },
-        "full_model": {
-          "log_loss": 0.6256663835567913,
-          "brier_score": 0.2181486181013437,
-          "accuracy": 0.6441908713692946
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2023-09-01",
-        "validate_month": "2023-10-01",
-        "train_size": 44125,
-        "validate_size": 938,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5543710021321961
-        },
-        "elo_only": {
-          "log_loss": 0.663872378521148,
-          "brier_score": 0.2340587380529815,
-          "accuracy": 0.6172707889125799
-        },
-        "full_model": {
-          "log_loss": 0.6518065728459389,
-          "brier_score": 0.22929780649771972,
-          "accuracy": 0.6204690831556503
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2023-10-01",
-        "validate_month": "2023-11-01",
-        "train_size": 45063,
-        "validate_size": 600,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5383333333333333
-        },
-        "elo_only": {
-          "log_loss": 0.6713180577279064,
-          "brier_score": 0.23726641904906937,
-          "accuracy": 0.6
-        },
-        "full_model": {
-          "log_loss": 0.6688219152005751,
-          "brier_score": 0.2373769834906285,
-          "accuracy": 0.5833333333333334
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2023-11-01",
-        "validate_month": "2023-12-01",
-        "train_size": 45663,
-        "validate_size": 356,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5561797752808989
-        },
-        "elo_only": {
-          "log_loss": 0.6813578769564709,
-          "brier_score": 0.24308698230655923,
-          "accuracy": 0.6067415730337079
-        },
-        "full_model": {
-          "log_loss": 0.6728108268376877,
-          "brier_score": 0.2391692530646834,
-          "accuracy": 0.601123595505618
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2023-12-01",
-        "validate_month": "2024-01-01",
-        "train_size": 46019,
-        "validate_size": 490,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5693877551020409
-        },
-        "elo_only": {
-          "log_loss": 0.6522414598555034,
-          "brier_score": 0.22979290297803504,
-          "accuracy": 0.5959183673469388
-        },
-        "full_model": {
-          "log_loss": 0.6309498231294948,
-          "brier_score": 0.2205681833430368,
-          "accuracy": 0.6346938775510204
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2024-01-01",
-        "validate_month": "2024-02-01",
-        "train_size": 46509,
-        "validate_size": 1245,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5542168674698795
-        },
-        "elo_only": {
-          "log_loss": 0.6846681549707074,
-          "brier_score": 0.24291410740353736,
-          "accuracy": 0.5919678714859438
-        },
-        "full_model": {
-          "log_loss": 0.648462997851657,
-          "brier_score": 0.22840095367448768,
-          "accuracy": 0.6160642570281124
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2024-02-01",
-        "validate_month": "2024-03-01",
-        "train_size": 47754,
-        "validate_size": 1082,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5341959334565619
-        },
-        "elo_only": {
-          "log_loss": 0.6504869132430532,
-          "brier_score": 0.22918163396107352,
-          "accuracy": 0.6358595194085028
-        },
-        "full_model": {
-          "log_loss": 0.6532300268027599,
-          "brier_score": 0.2307628440129119,
-          "accuracy": 0.6146025878003697
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2024-03-01",
-        "validate_month": "2024-04-01",
-        "train_size": 48836,
-        "validate_size": 742,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5134770889487871
-        },
-        "elo_only": {
-          "log_loss": 0.6719850821507944,
-          "brier_score": 0.23735709919108458,
-          "accuracy": 0.6024258760107817
-        },
-        "full_model": {
-          "log_loss": 0.6413486783655075,
-          "brier_score": 0.22549080606790453,
-          "accuracy": 0.6212938005390836
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2024-04-01",
-        "validate_month": "2024-05-01",
-        "train_size": 49578,
-        "validate_size": 846,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.48226950354609927
-        },
-        "elo_only": {
-          "log_loss": 0.6795569949677006,
-          "brier_score": 0.24195223345696798,
-          "accuracy": 0.5957446808510638
-        },
-        "full_model": {
-          "log_loss": 0.6787354717019659,
-          "brier_score": 0.24272464292202234,
-          "accuracy": 0.566193853427896
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2024-05-01",
-        "validate_month": "2024-06-01",
-        "train_size": 50424,
-        "validate_size": 1291,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5158791634391944
-        },
-        "elo_only": {
-          "log_loss": 0.6235522643839467,
-          "brier_score": 0.21529994704311525,
-          "accuracy": 0.6831913245546088
-        },
-        "full_model": {
-          "log_loss": 0.6189642965677898,
-          "brier_score": 0.21456123906735958,
-          "accuracy": 0.65143299767622
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2024-06-01",
-        "validate_month": "2024-07-01",
-        "train_size": 51715,
-        "validate_size": 1101,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5395095367847411
-        },
-        "elo_only": {
-          "log_loss": 0.6578532496514194,
-          "brier_score": 0.2311330062087051,
-          "accuracy": 0.6212534059945504
-        },
-        "full_model": {
-          "log_loss": 0.6491531583367873,
-          "brier_score": 0.22889124327242882,
-          "accuracy": 0.6321525885558583
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2024-07-01",
-        "validate_month": "2024-08-01",
-        "train_size": 52816,
-        "validate_size": 112,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.49107142857142855
-        },
-        "elo_only": {
-          "log_loss": 0.6876931942048693,
-          "brier_score": 0.24254308501032826,
-          "accuracy": 0.5803571428571429
-        },
-        "full_model": {
-          "log_loss": 0.6567628658650919,
-          "brier_score": 0.2325445057058059,
-          "accuracy": 0.625
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2024-08-01",
-        "validate_month": "2024-09-01",
-        "train_size": 52928,
-        "validate_size": 435,
-        "coin_flip": {
-          "log_loss": 0.6931471805599454,
-          "brier_score": 0.25,
-          "accuracy": 0.5701149425287356
-        },
-        "elo_only": {
-          "log_loss": 0.6837600411770222,
-          "brier_score": 0.24292339475669786,
-          "accuracy": 0.6183908045977011
-        },
-        "full_model": {
-          "log_loss": 0.6674465037261352,
-          "brier_score": 0.23683549070897708,
-          "accuracy": 0.5954022988505747
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2024-09-01",
-        "validate_month": "2024-10-01",
-        "train_size": 53363,
-        "validate_size": 708,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5494350282485876
-        },
-        "elo_only": {
-          "log_loss": 0.6670043206848291,
-          "brier_score": 0.23617768072493311,
-          "accuracy": 0.6115819209039548
-        },
-        "full_model": {
-          "log_loss": 0.6647390990004223,
-          "brier_score": 0.23588348827424685,
-          "accuracy": 0.6002824858757062
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2024-10-01",
-        "validate_month": "2024-11-01",
-        "train_size": 54071,
-        "validate_size": 857,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5624270711785297
-        },
-        "elo_only": {
-          "log_loss": 0.6866539223887334,
-          "brier_score": 0.24476373861461115,
-          "accuracy": 0.603267211201867
-        },
-        "full_model": {
-          "log_loss": 0.663377203509726,
-          "brier_score": 0.2355440299093767,
-          "accuracy": 0.5892648774795799
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2024-11-01",
-        "validate_month": "2024-12-01",
-        "train_size": 54928,
-        "validate_size": 461,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5401301518438177
-        },
-        "elo_only": {
-          "log_loss": 0.7250635316506697,
-          "brier_score": 0.2606547392163945,
-          "accuracy": 0.5401301518438177
-        },
-        "full_model": {
-          "log_loss": 0.7073797387375571,
-          "brier_score": 0.25490778193872776,
-          "accuracy": 0.5357917570498916
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2024-12-01",
-        "validate_month": "2025-01-01",
-        "train_size": 55389,
-        "validate_size": 553,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.47920433996383366
-        },
-        "elo_only": {
-          "log_loss": 0.7579108189753465,
-          "brier_score": 0.27479140849981054,
-          "accuracy": 0.5370705244122965
-        },
-        "full_model": {
-          "log_loss": 0.7155756428073176,
-          "brier_score": 0.2591923177602448,
-          "accuracy": 0.5352622061482821
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2025-01-01",
-        "validate_month": "2025-02-01",
-        "train_size": 55942,
-        "validate_size": 714,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5378151260504201
-        },
-        "elo_only": {
-          "log_loss": 0.6950381790304507,
-          "brier_score": 0.2478278193778935,
-          "accuracy": 0.5560224089635855
-        },
-        "full_model": {
-          "log_loss": 0.6704921910866465,
-          "brier_score": 0.23839959742826827,
-          "accuracy": 0.5714285714285714
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2025-02-01",
-        "validate_month": "2025-03-01",
-        "train_size": 56656,
-        "validate_size": 995,
-        "coin_flip": {
-          "log_loss": 0.6931471805599454,
-          "brier_score": 0.25,
-          "accuracy": 0.563819095477387
-        },
-        "elo_only": {
-          "log_loss": 0.6552442305084424,
-          "brier_score": 0.23107238232020907,
-          "accuracy": 0.6211055276381909
-        },
-        "full_model": {
-          "log_loss": 0.641476308168698,
-          "brier_score": 0.22548242458127446,
-          "accuracy": 0.6241206030150753
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2025-03-01",
-        "validate_month": "2025-04-01",
-        "train_size": 57651,
-        "validate_size": 1032,
-        "coin_flip": {
-          "log_loss": 0.6931471805599452,
-          "brier_score": 0.25,
-          "accuracy": 0.5251937984496124
-        },
-        "elo_only": {
-          "log_loss": 0.6639389747162044,
-          "brier_score": 0.23363278676389715,
-          "accuracy": 0.623062015503876
-        },
-        "full_model": {
-          "log_loss": 0.6524732369061691,
-          "brier_score": 0.23038129981866678,
-          "accuracy": 0.622093023255814
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2025-04-01",
-        "validate_month": "2025-05-01",
-        "train_size": 58683,
-        "validate_size": 805,
-        "coin_flip": {
-          "log_loss": 0.6931471805599452,
-          "brier_score": 0.25,
-          "accuracy": 0.5527950310559007
-        },
-        "elo_only": {
-          "log_loss": 0.6674186326674557,
-          "brier_score": 0.23649466376122663,
-          "accuracy": 0.6186335403726708
-        },
-        "full_model": {
-          "log_loss": 0.6573863481506983,
-          "brier_score": 0.232722268680454,
-          "accuracy": 0.6
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2025-05-01",
-        "validate_month": "2025-06-01",
-        "train_size": 59488,
-        "validate_size": 385,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5428571428571428
-        },
-        "elo_only": {
-          "log_loss": 0.666161183680903,
-          "brier_score": 0.23612375239181752,
-          "accuracy": 0.6025974025974026
-        },
-        "full_model": {
-          "log_loss": 0.6390085892117617,
-          "brier_score": 0.2254402835855349,
-          "accuracy": 0.6077922077922078
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2025-06-01",
-        "validate_month": "2025-07-01",
-        "train_size": 59873,
-        "validate_size": 989,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5591506572295247
-        },
-        "elo_only": {
-          "log_loss": 0.6784882110990514,
-          "brier_score": 0.23725818311649288,
-          "accuracy": 0.6167846309403437
-        },
-        "full_model": {
-          "log_loss": 0.6504331929618069,
-          "brier_score": 0.2289234318747281,
-          "accuracy": 0.6228513650151668
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2025-07-01",
-        "validate_month": "2025-08-01",
-        "train_size": 60862,
-        "validate_size": 798,
-        "coin_flip": {
-          "log_loss": 0.6931471805599452,
-          "brier_score": 0.25,
-          "accuracy": 0.5676691729323309
-        },
-        "elo_only": {
-          "log_loss": 0.6836919972374469,
-          "brier_score": 0.2426825293898227,
-          "accuracy": 0.6102756892230576
-        },
-        "full_model": {
-          "log_loss": 0.6598058515765662,
-          "brier_score": 0.23390256098552217,
-          "accuracy": 0.5939849624060151
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2025-08-01",
-        "validate_month": "2025-09-01",
-        "train_size": 61660,
-        "validate_size": 291,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5463917525773195
-        },
-        "elo_only": {
-          "log_loss": 0.7120579649134524,
-          "brier_score": 0.25750358130328865,
-          "accuracy": 0.5429553264604811
-        },
-        "full_model": {
-          "log_loss": 0.6927001130294189,
-          "brier_score": 0.24997140246458027,
-          "accuracy": 0.5223367697594502
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2025-09-01",
-        "validate_month": "2025-10-01",
-        "train_size": 61951,
-        "validate_size": 456,
-        "coin_flip": {
-          "log_loss": 0.6931471805599452,
-          "brier_score": 0.25,
-          "accuracy": 0.5789473684210527
-        },
-        "elo_only": {
-          "log_loss": 0.6820915701231832,
-          "brier_score": 0.24359335543332344,
-          "accuracy": 0.5789473684210527
-        },
-        "full_model": {
-          "log_loss": 0.6749098266132787,
-          "brier_score": 0.2412977713735028,
-          "accuracy": 0.5570175438596491
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2025-10-01",
-        "validate_month": "2025-11-01",
-        "train_size": 62407,
-        "validate_size": 475,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.56
-        },
-        "elo_only": {
-          "log_loss": 0.6584918567345514,
-          "brier_score": 0.23222347054680306,
-          "accuracy": 0.6273684210526316
-        },
-        "full_model": {
-          "log_loss": 0.6455652621832274,
-          "brier_score": 0.22738296518466397,
-          "accuracy": 0.6231578947368421
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2025-11-01",
-        "validate_month": "2025-12-01",
-        "train_size": 62882,
-        "validate_size": 279,
-        "coin_flip": {
-          "log_loss": 0.6931471805599453,
-          "brier_score": 0.25,
-          "accuracy": 0.5125448028673835
-        },
-        "elo_only": {
-          "log_loss": 0.6958876943053842,
-          "brier_score": 0.24545704974577526,
-          "accuracy": 0.6164874551971327
-        },
-        "full_model": {
-          "log_loss": 0.6798715043001713,
-          "brier_score": 0.2415080432426892,
-          "accuracy": 0.5985663082437276
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2025-12-01",
-        "validate_month": "2026-01-01",
-        "train_size": 63161,
-        "validate_size": 629,
-        "coin_flip": {
-          "log_loss": 0.6931471805599454,
-          "brier_score": 0.25,
-          "accuracy": 0.5151033386327504
-        },
-        "elo_only": {
-          "log_loss": 0.695235182324867,
-          "brier_score": 0.247712088186124,
-          "accuracy": 0.5771065182829889
-        },
-        "full_model": {
-          "log_loss": 0.6568268062116265,
-          "brier_score": 0.23181747032409464,
-          "accuracy": 0.6216216216216216
-        },
-        "warning": null
-      },
-      {
-        "train_end_month": "2026-01-01",
-        "validate_month": "2026-02-01",
-        "train_size": 63790,
-        "validate_size": 909,
-        "coin_flip": {
-          "log_loss": 0.6931471805599454,
-          "brier_score": 0.25,
-          "accuracy": 0.5192519251925193
-        },
-        "elo_only": {
-          "log_loss": 0.6517997240461669,
-          "brier_score": 0.22972345288348095,
-          "accuracy": 0.6039603960396039
-        },
-        "full_model": {
-          "log_loss": 0.6468331981267414,
-          "brier_score": 0.22811271848513945,
-          "accuracy": 0.6182618261826183
-        },
-        "warning": null
-      }
-    ],
-    "summary": {
-      "coin_flip": {
-        "log_loss": 0.6931471805599454,
-        "brier_score": 0.25,
-        "accuracy": 0.5571301724766046
-      },
-      "elo_only": {
-        "log_loss": 0.656871409694521,
-        "brier_score": 0.23110348823122032,
-        "accuracy": 0.619763698067876
-      },
-      "full_model": {
-        "log_loss": 0.6467877324092747,
-        "brier_score": 0.22742749725042133,
-        "accuracy": 0.6216075198906723
-      }
-    }
-  },
+  "feature_count": 79,
+  "row_count": 65356,
   "test": {
-    "month": "2026-03-01",
-    "train_size": 64699,
-    "test_size": 618,
-    "coin_flip": {
-      "log_loss": 0.6931471805599453,
-      "brier_score": 0.25,
-      "accuracy": 0.5501618122977346
-    },
-    "elo_only": {
-      "log_loss": 0.6783762730879047,
-      "brier_score": 0.23834792045359005,
-      "accuracy": 0.6245954692556634
-    },
+    "month": "2026-04-01",
+    "train_size": 65331,
+    "test_size": 25,
     "full_model": {
-      "log_loss": 0.6635451005289837,
-      "brier_score": 0.23421056518616123,
-      "accuracy": 0.6067961165048543
+      "log_loss": 0.6725541046159388,
+      "brier_score": 0.23510783241654376,
+      "accuracy": 0.64
     },
     "calibration": [
       {
@@ -1497,9 +38,9 @@
           0.1,
           0.2
         ],
-        "count": 7,
-        "avg_predicted": 0.17992807499000005,
-        "actual_rate": 0.0
+        "count": 0,
+        "avg_predicted": null,
+        "actual_rate": null
       },
       {
         "bin": 2,
@@ -1507,9 +48,9 @@
           0.2,
           0.30000000000000004
         ],
-        "count": 28,
-        "avg_predicted": 0.252684906657253,
-        "actual_rate": 0.17857142857142858
+        "count": 1,
+        "avg_predicted": 0.298969566822052,
+        "actual_rate": 0.0
       },
       {
         "bin": 3,
@@ -1517,9 +58,9 @@
           0.30000000000000004,
           0.4
         ],
-        "count": 58,
-        "avg_predicted": 0.3538148757712594,
-        "actual_rate": 0.41379310344827586
+        "count": 4,
+        "avg_predicted": 0.37177012860774994,
+        "actual_rate": 0.25
       },
       {
         "bin": 4,
@@ -1527,9 +68,9 @@
           0.4,
           0.5
         ],
-        "count": 142,
-        "avg_predicted": 0.4579620105280003,
-        "actual_rate": 0.5
+        "count": 6,
+        "avg_predicted": 0.45299621919790906,
+        "actual_rate": 0.6666666666666666
       },
       {
         "bin": 5,
@@ -1537,9 +78,9 @@
           0.5,
           0.6000000000000001
         ],
-        "count": 147,
-        "avg_predicted": 0.5483828807363704,
-        "actual_rate": 0.5782312925170068
+        "count": 1,
+        "avg_predicted": 0.5904219746589661,
+        "actual_rate": 1.0
       },
       {
         "bin": 6,
@@ -1547,9 +88,9 @@
           0.6000000000000001,
           0.7000000000000001
         ],
-        "count": 116,
-        "avg_predicted": 0.6476976511807278,
-        "actual_rate": 0.6293103448275862
+        "count": 9,
+        "avg_predicted": 0.6380910873413086,
+        "actual_rate": 0.7777777777777778
       },
       {
         "bin": 7,
@@ -1557,9 +98,9 @@
           0.7000000000000001,
           0.8
         ],
-        "count": 79,
-        "avg_predicted": 0.745427594154696,
-        "actual_rate": 0.6708860759493671
+        "count": 0,
+        "avg_predicted": null,
+        "actual_rate": null
       },
       {
         "bin": 8,
@@ -1567,9 +108,9 @@
           0.8,
           0.9
         ],
-        "count": 35,
-        "avg_predicted": 0.8304906163896834,
-        "actual_rate": 0.7142857142857143
+        "count": 4,
+        "avg_predicted": 0.815815344452858,
+        "actual_rate": 0.5
       },
       {
         "bin": 9,
@@ -1577,288 +118,328 @@
           0.9,
           1.0
         ],
-        "count": 6,
-        "avg_predicted": 0.9361613889535269,
-        "actual_rate": 0.6666666666666666
+        "count": 0,
+        "avg_predicted": null,
+        "actual_rate": null
       }
     ]
   },
   "feature_importances": [
     {
       "feature": "elo_diff",
-      "importance": 0.15980884432792664
+      "importance": 0.15530137717723846
     },
     {
       "feature": "map_elo_diff",
-      "importance": 0.05374960973858833
-    },
-    {
-      "feature": "fk_rate_diff_20",
-      "importance": 0.03448210656642914
+      "importance": 0.061711303889751434
     },
     {
       "feature": "team2_map_games_played",
-      "importance": 0.028546467423439026
-    },
-    {
-      "feature": "team2_elo",
-      "importance": 0.021817658096551895
-    },
-    {
-      "feature": "avg_kast_diff_20",
-      "importance": 0.01867091841995716
+      "importance": 0.02838100492954254
     },
     {
       "feature": "team1_elo",
-      "importance": 0.01815432496368885
+      "importance": 0.02590557560324669
+    },
+    {
+      "feature": "fk_rate_diff_20",
+      "importance": 0.025254320353269577
+    },
+    {
+      "feature": "team2_elo",
+      "importance": 0.024422263726592064
     },
     {
       "feature": "avg_acs_diff_20",
-      "importance": 0.017777476459741592
+      "importance": 0.02231001853942871
     },
     {
-      "feature": "avg_rating_diff_20",
-      "importance": 0.0168997123837471
-    },
-    {
-      "feature": "fk_rate_diff_10",
-      "importance": 0.01602509431540966
+      "feature": "avg_kast_diff_20",
+      "importance": 0.0198244359344244
     },
     {
       "feature": "team1_map_games_played",
-      "importance": 0.01562616229057312
+      "importance": 0.016978401690721512
     },
     {
-      "feature": "avg_kast_diff_10",
-      "importance": 0.014025147072970867
+      "feature": "avg_rating_diff_20",
+      "importance": 0.016471121460199356
     },
     {
-      "feature": "h2h_team1_win_rate",
-      "importance": 0.013265726156532764
-    },
-    {
-      "feature": "team1_avg_acs_20",
-      "importance": 0.012592957355082035
-    },
-    {
-      "feature": "avg_rating_diff_10",
-      "importance": 0.01221074815839529
-    },
-    {
-      "feature": "team1_days_since_last",
-      "importance": 0.012153240852057934
+      "feature": "fk_rate_diff_10",
+      "importance": 0.015912901610136032
     },
     {
       "feature": "team2_fk_rate_20",
-      "importance": 0.012152624316513538
-    },
-    {
-      "feature": "is_decider",
-      "importance": 0.012097373604774475
-    },
-    {
-      "feature": "team2_avg_rating_20",
-      "importance": 0.011792915873229504
-    },
-    {
-      "feature": "team1_avg_kast_10",
-      "importance": 0.011754689738154411
-    },
-    {
-      "feature": "team1_avg_rating_10",
-      "importance": 0.011524833738803864
-    },
-    {
-      "feature": "team2_win_rate_20",
-      "importance": 0.011471976526081562
-    },
-    {
-      "feature": "h2h_maps_played",
-      "importance": 0.011385985650122166
-    },
-    {
-      "feature": "win_rate_diff_20",
-      "importance": 0.011237001977860928
+      "importance": 0.014757598750293255
     },
     {
       "feature": "avg_acs_diff_10",
-      "importance": 0.01121688075363636
+      "importance": 0.014544779434800148
     },
     {
-      "feature": "is_team1_pick",
-      "importance": 0.01116624753922224
+      "feature": "avg_kast_diff_10",
+      "importance": 0.014252725057303905
     },
     {
-      "feature": "avg_adr_diff_20",
-      "importance": 0.011060703545808792
+      "feature": "h2h_team1_win_rate",
+      "importance": 0.013172590173780918
     },
     {
-      "feature": "team1_avg_kast_20",
-      "importance": 0.011012847535312176
+      "feature": "team1_days_since_last",
+      "importance": 0.011878292076289654
     },
     {
-      "feature": "team2_avg_acs_20",
-      "importance": 0.010920388624072075
+      "feature": "team1_avg_acs_20",
+      "importance": 0.011860639788210392
     },
     {
-      "feature": "team2_streak",
-      "importance": 0.010873042978346348
+      "feature": "team1_avg_kast_10",
+      "importance": 0.011806989088654518
     },
     {
-      "feature": "fd_rate_diff_20",
-      "importance": 0.010827822610735893
+      "feature": "avg_rating_diff_10",
+      "importance": 0.011803785338997841
     },
     {
-      "feature": "team2_win_rate_10",
-      "importance": 0.01072059478610754
+      "feature": "win_rate_diff_20",
+      "importance": 0.011308751069009304
     },
     {
-      "feature": "team2_avg_kast_10",
-      "importance": 0.01068957056850195
+      "feature": "team1_avg_rating_10",
+      "importance": 0.010976945981383324
     },
     {
       "feature": "team1_fk_rate_20",
-      "importance": 0.010555378161370754
-    },
-    {
-      "feature": "team1_avg_adr_20",
-      "importance": 0.010531807318329811
-    },
-    {
-      "feature": "team1_avg_rating_20",
-      "importance": 0.010529487393796444
-    },
-    {
-      "feature": "team1_avg_adr_10",
-      "importance": 0.010454033501446247
-    },
-    {
-      "feature": "team2_avg_adr_20",
-      "importance": 0.010426853783428669
-    },
-    {
-      "feature": "team2_avg_acs_10",
-      "importance": 0.010424377396702766
-    },
-    {
-      "feature": "team1_win_rate_20",
-      "importance": 0.010282074101269245
-    },
-    {
-      "feature": "team1_pick_win_rate",
-      "importance": 0.010243906639516354
-    },
-    {
-      "feature": "team1_fd_rate_20",
-      "importance": 0.010200291872024536
-    },
-    {
-      "feature": "win_rate_diff_10",
-      "importance": 0.010175272822380066
-    },
-    {
-      "feature": "team1_avg_acs_10",
-      "importance": 0.010170148685574532
-    },
-    {
-      "feature": "team2_days_since_last",
-      "importance": 0.010151649825274944
-    },
-    {
-      "feature": "team2_roster_overlap",
-      "importance": 0.010103221982717514
-    },
-    {
-      "feature": "team2_avg_kast_20",
-      "importance": 0.010082817636430264
-    },
-    {
-      "feature": "avg_adr_diff_10",
-      "importance": 0.010070796124637127
+      "importance": 0.010909031145274639
     },
     {
       "feature": "team2_map_elo",
-      "importance": 0.00998538825660944
-    },
-    {
-      "feature": "team1_fk_rate_10",
-      "importance": 0.009969777427613735
-    },
-    {
-      "feature": "team1_win_rate_10",
-      "importance": 0.009928345680236816
-    },
-    {
-      "feature": "fd_rate_diff_10",
-      "importance": 0.009879957884550095
-    },
-    {
-      "feature": "team1_map_elo",
-      "importance": 0.009877697564661503
-    },
-    {
-      "feature": "team1_recent_momentum",
-      "importance": 0.009844772517681122
-    },
-    {
-      "feature": "team2_fd_rate_10",
-      "importance": 0.009812292642891407
-    },
-    {
-      "feature": "team2_pick_win_rate",
-      "importance": 0.009795283898711205
-    },
-    {
-      "feature": "team2_fk_rate_10",
-      "importance": 0.009785069152712822
-    },
-    {
-      "feature": "team2_fd_rate_20",
-      "importance": 0.009784811176359653
+      "importance": 0.010767806321382523
     },
     {
       "feature": "team2_avg_rating_10",
-      "importance": 0.009777704253792763
+      "importance": 0.010766183026134968
+    },
+    {
+      "feature": "team2_fk_rate_10",
+      "importance": 0.01075191143900156
+    },
+    {
+      "feature": "h2h_maps_played",
+      "importance": 0.010722501203417778
+    },
+    {
+      "feature": "team1_avg_acs_10",
+      "importance": 0.010713888332247734
+    },
+    {
+      "feature": "team2_avg_acs_20",
+      "importance": 0.010685987770557404
+    },
+    {
+      "feature": "is_decider",
+      "importance": 0.010670091025531292
+    },
+    {
+      "feature": "fd_rate_diff_10",
+      "importance": 0.010544933378696442
+    },
+    {
+      "feature": "team1_map_elo",
+      "importance": 0.010500824078917503
+    },
+    {
+      "feature": "avg_adr_diff_10",
+      "importance": 0.010458903387188911
+    },
+    {
+      "feature": "team2_streak",
+      "importance": 0.010438867844641209
+    },
+    {
+      "feature": "team2_avg_acs_10",
+      "importance": 0.010421284474432468
+    },
+    {
+      "feature": "team2_avg_kast_20",
+      "importance": 0.010275515727698803
+    },
+    {
+      "feature": "team1_avg_kast_20",
+      "importance": 0.010242548771202564
     },
     {
       "feature": "team2_avg_adr_10",
-      "importance": 0.009777575731277466
+      "importance": 0.01013485249131918
     },
     {
-      "feature": "team1_fd_rate_10",
-      "importance": 0.009685467928647995
+      "feature": "team1_win_rate_20",
+      "importance": 0.010097604244947433
     },
     {
-      "feature": "team2_recent_momentum",
-      "importance": 0.009448324330151081
+      "feature": "team2_avg_rating_20",
+      "importance": 0.010085818357765675
+    },
+    {
+      "feature": "fd_rate_diff_20",
+      "importance": 0.01008051447570324
+    },
+    {
+      "feature": "team2_avg_kast_10",
+      "importance": 0.010078061372041702
+    },
+    {
+      "feature": "avg_adr_diff_20",
+      "importance": 0.010060972534120083
+    },
+    {
+      "feature": "team2_win_rate_20",
+      "importance": 0.010017666965723038
+    },
+    {
+      "feature": "team1_fd_rate_20",
+      "importance": 0.009999226778745651
+    },
+    {
+      "feature": "team2_days_since_last",
+      "importance": 0.009954076260328293
+    },
+    {
+      "feature": "team2_pick_win_rate",
+      "importance": 0.009926660917699337
+    },
+    {
+      "feature": "team1_pick_win_rate",
+      "importance": 0.009897846728563309
+    },
+    {
+      "feature": "win_rate_diff_10",
+      "importance": 0.009888634085655212
+    },
+    {
+      "feature": "team1_avg_rating_20",
+      "importance": 0.009867662563920021
     },
     {
       "feature": "team1_roster_overlap",
-      "importance": 0.009396354667842388
+      "importance": 0.00961137656122446
     },
     {
       "feature": "team1_streak",
-      "importance": 0.00867567677050829
+      "importance": 0.009607071988284588
     },
     {
-      "feature": "team2_map_win_rate",
-      "importance": 0.008561980910599232
+      "feature": "team1_win_rate_10",
+      "importance": 0.009591815993189812
+    },
+    {
+      "feature": "team1_avg_adr_10",
+      "importance": 0.009558787569403648
+    },
+    {
+      "feature": "team2_avg_adr_20",
+      "importance": 0.009541617706418037
+    },
+    {
+      "feature": "team2_win_rate_10",
+      "importance": 0.009516787715256214
+    },
+    {
+      "feature": "team1_avg_adr_20",
+      "importance": 0.009447218850255013
+    },
+    {
+      "feature": "team1_recent_momentum",
+      "importance": 0.009434740990400314
+    },
+    {
+      "feature": "team2_fd_rate_20",
+      "importance": 0.009409268386662006
+    },
+    {
+      "feature": "team1_fk_rate_10",
+      "importance": 0.009405935183167458
+    },
+    {
+      "feature": "team2_fd_rate_10",
+      "importance": 0.009364326484501362
+    },
+    {
+      "feature": "team2_roster_overlap",
+      "importance": 0.009160857647657394
+    },
+    {
+      "feature": "is_team1_pick",
+      "importance": 0.009142914786934853
+    },
+    {
+      "feature": "team1_fd_rate_10",
+      "importance": 0.009082428179681301
     },
     {
       "feature": "team1_map_win_rate",
-      "importance": 0.008540799841284752
+      "importance": 0.00869176909327507
+    },
+    {
+      "feature": "team2_recent_momentum",
+      "importance": 0.008497240953147411
+    },
+    {
+      "feature": "team2_map_win_rate",
+      "importance": 0.008355390280485153
     },
     {
       "feature": "map_win_rate_diff",
-      "importance": 0.008228179067373276
+      "importance": 0.007905320264399052
     },
     {
       "feature": "is_team2_pick",
-      "importance": 0.007130700629204512
+      "importance": 0.006879369728267193
+    },
+    {
+      "feature": "team1_pistol_wr",
+      "importance": 0.0
+    },
+    {
+      "feature": "team2_pistol_wr",
+      "importance": 0.0
+    },
+    {
+      "feature": "pistol_wr_diff",
+      "importance": 0.0
+    },
+    {
+      "feature": "team1_attack_wr",
+      "importance": 0.0
+    },
+    {
+      "feature": "team2_attack_wr",
+      "importance": 0.0
+    },
+    {
+      "feature": "attack_wr_diff",
+      "importance": 0.0
+    },
+    {
+      "feature": "team1_defense_wr",
+      "importance": 0.0
+    },
+    {
+      "feature": "team2_defense_wr",
+      "importance": 0.0
+    },
+    {
+      "feature": "defense_wr_diff",
+      "importance": 0.0
+    },
+    {
+      "feature": "team1_comeback_rate",
+      "importance": 0.0
+    },
+    {
+      "feature": "team2_comeback_rate",
+      "importance": 0.0
     }
-  ],
-  "artifact_training": {
-    "trained_on_full_history": true,
-    "full_training_rows": 65317
-  }
+  ]
 }

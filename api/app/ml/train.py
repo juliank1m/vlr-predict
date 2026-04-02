@@ -56,6 +56,18 @@ class EstimatorSpec:
     warning: str | None = None
 
 
+TUNING_GRID = [
+    {"n_estimators": 300, "max_depth": 5, "learning_rate": 0.05, "subsample": 0.9, "colsample_bytree": 0.8, "reg_lambda": 1.0},
+    {"n_estimators": 500, "max_depth": 4, "learning_rate": 0.03, "subsample": 0.8, "colsample_bytree": 0.7, "reg_lambda": 2.0},
+    {"n_estimators": 400, "max_depth": 6, "learning_rate": 0.05, "subsample": 0.85, "colsample_bytree": 0.85, "reg_lambda": 0.5},
+    {"n_estimators": 300, "max_depth": 3, "learning_rate": 0.1, "subsample": 0.9, "colsample_bytree": 0.9, "reg_lambda": 1.0},
+    {"n_estimators": 600, "max_depth": 5, "learning_rate": 0.02, "subsample": 0.85, "colsample_bytree": 0.75, "reg_lambda": 1.5},
+    {"n_estimators": 400, "max_depth": 4, "learning_rate": 0.08, "subsample": 0.9, "colsample_bytree": 0.8, "reg_lambda": 0.8},
+    {"n_estimators": 500, "max_depth": 3, "learning_rate": 0.05, "subsample": 0.85, "colsample_bytree": 0.9, "reg_lambda": 1.5},
+    {"n_estimators": 200, "max_depth": 6, "learning_rate": 0.1, "subsample": 0.8, "colsample_bytree": 0.7, "reg_lambda": 2.0},
+]
+
+
 def build_estimator(preferred_model: str = "auto") -> EstimatorSpec:
     """Create the primary estimator, falling back when XGBoost is unavailable."""
     if preferred_model in {"auto", "xgboost"}:
@@ -151,6 +163,16 @@ def default_feature_imputation() -> dict[str, float]:
         elif name.endswith("_map_elo"):
             defaults[name] = 1500.0
         elif name == "map_elo_diff":
+            defaults[name] = 0.0
+        elif name.endswith("_pistol_wr"):
+            defaults[name] = 0.5
+        elif name.endswith("_attack_wr"):
+            defaults[name] = 0.5
+        elif name.endswith("_defense_wr"):
+            defaults[name] = 0.5
+        elif name.endswith("_comeback_rate"):
+            defaults[name] = 0.3
+        elif name in ("pistol_wr_diff", "attack_wr_diff", "defense_wr_diff"):
             defaults[name] = 0.0
         else:
             defaults[name] = 0.0
@@ -403,6 +425,170 @@ def train_and_save(
     metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
     test_acc = test_metrics["full_model"].get("accuracy", 0)
     logger.info("Artifacts saved. Version=%s, rows=%d, test_accuracy=%.3f", model_version, len(dataset), test_acc)
+    return metadata
+
+
+def tune_and_save(
+    *,
+    min_train_months: int = 6,
+    cancel_check: callable = None,
+) -> dict[str, Any]:
+    """Try multiple hyperparameter configs, pick the best by CV log-loss, then train final model."""
+    logger.info("Building training dataset for tuning...")
+    with SyncSessionLocal() as session:
+        dataset = build_training_dataset(session, cancel_check=cancel_check)
+    logger.info("Dataset: %d rows, testing %d configs", len(dataset), len(TUNING_GRID))
+
+    cv_months, test_month = walk_forward_months(dataset, min_train_months)
+
+    # Use last 3 CV months as validation for tuning
+    tune_months = cv_months[-3:] if len(cv_months) >= 3 else cv_months
+    best_loss = float("inf")
+    best_params = TUNING_GRID[0]
+    results = []
+
+    for ci, params in enumerate(TUNING_GRID):
+        if cancel_check:
+            cancel_check()
+        logger.info("Config %d/%d: %s", ci + 1, len(TUNING_GRID), params)
+
+        fold_losses = []
+        for month in tune_months:
+            train_mask = dataset["month"] < month
+            eval_mask = dataset["month"] == month
+            train_df = dataset.loc[train_mask]
+            eval_df = dataset.loc[eval_mask]
+            if train_df.empty or eval_df.empty:
+                continue
+
+            X_train = train_df[FEATURE_NAMES]
+            y_train = train_df["target"]
+            X_eval = eval_df[FEATURE_NAMES]
+            y_eval = eval_df["target"]
+
+            imputation_values = compute_imputation_values(X_train)
+            X_train_filled = apply_imputation(X_train, imputation_values)
+            X_eval_filled = apply_imputation(X_eval, imputation_values)
+
+            try:
+                from xgboost import XGBClassifier
+                model = XGBClassifier(
+                    **params,
+                    random_state=42,
+                    eval_metric="logloss",
+                    tree_method="hist",
+                )
+                model.fit(X_train_filled, y_train)
+                probs = model.predict_proba(X_eval_filled)[:, 1]
+                metrics = summarize_binary_predictions(y_eval, probs)
+                fold_losses.append(metrics["log_loss"])
+            except Exception as e:
+                logger.warning("Config %d failed on fold: %s", ci + 1, e)
+                continue
+
+        if fold_losses:
+            avg_loss = float(np.mean(fold_losses))
+            avg_acc = None
+            # Quick accuracy check on last fold
+            results.append({"config": params, "avg_log_loss": avg_loss, "folds": len(fold_losses)})
+            logger.info("  Avg log-loss: %.4f (%d folds)", avg_loss, len(fold_losses))
+            if avg_loss < best_loss:
+                best_loss = avg_loss
+                best_params = params
+
+    logger.info("Best config (log-loss=%.4f): %s", best_loss, best_params)
+    logger.info("Training final model with best params...")
+
+    # Now do full train_and_save with best params by updating build_estimator
+    # Save best params to a file so train_and_save can use them
+    settings = get_settings()
+    tuning_path = resolve_artifact_path(settings.training_metadata_path).parent / "tuning_result.json"
+    tuning_result = {
+        "best_params": best_params,
+        "best_log_loss": best_loss,
+        "all_results": results,
+        "tuned_at": datetime.now(UTC).isoformat(),
+    }
+    tuning_path.write_text(json.dumps(tuning_result, indent=2), encoding="utf-8")
+    logger.info("Tuning results saved to %s", tuning_path)
+
+    # Retrain with best params
+    # Override build_estimator temporarily
+    from xgboost import XGBClassifier
+
+    train_df = dataset.loc[dataset["month"] < test_month].copy()
+    test_df = dataset.loc[dataset["month"] == test_month].copy()
+
+    X_train = train_df[FEATURE_NAMES]
+    y_train = train_df["target"]
+    X_test = test_df[FEATURE_NAMES]
+    y_test = test_df["target"]
+
+    imputation_values = compute_imputation_values(X_train)
+    X_train_filled = apply_imputation(X_train, imputation_values)
+    X_test_filled = apply_imputation(X_test, imputation_values)
+
+    best_model = XGBClassifier(
+        **best_params,
+        random_state=42,
+        eval_metric="logloss",
+        tree_method="hist",
+    )
+    best_model.fit(X_train_filled, y_train)
+    test_probs = best_model.predict_proba(X_test_filled)[:, 1]
+    test_metrics = summarize_binary_predictions(y_test, test_probs)
+    logger.info("Test accuracy with best params: %.3f (log-loss: %.4f)",
+                test_metrics["accuracy"], test_metrics["log_loss"])
+
+    # Train on full dataset
+    full_imputation = compute_imputation_values(dataset[FEATURE_NAMES])
+    X_full = apply_imputation(dataset[FEATURE_NAMES], full_imputation)
+    final_model = XGBClassifier(
+        **best_params,
+        random_state=42,
+        eval_metric="logloss",
+        tree_method="hist",
+    )
+    final_model.fit(X_full, dataset["target"])
+
+    # Save artifacts
+    model_path = resolve_artifact_path(settings.model_path)
+    feature_config_path = resolve_artifact_path(settings.feature_config_path)
+    metadata_path = resolve_artifact_path(settings.training_metadata_path)
+
+    trained_at = datetime.now(UTC).isoformat()
+    feature_config = {
+        "created_at": trained_at,
+        "feature_names": FEATURE_NAMES,
+        "imputation_values": full_imputation,
+    }
+
+    feature_importances = rank_feature_importance(
+        best_model, FEATURE_NAMES,
+        X_reference=X_test_filled, y_reference=y_test,
+    )
+
+    metadata = {
+        "trained_at": trained_at,
+        "model_version": "xgb_v1",
+        "model_type": "xgboost",
+        "tuned_params": best_params,
+        "feature_count": len(FEATURE_NAMES),
+        "row_count": int(len(dataset)),
+        "test": {
+            "month": test_month.date().isoformat(),
+            "train_size": int(len(train_df)),
+            "test_size": int(len(test_df)),
+            "full_model": test_metrics,
+            "calibration": calibration_curve_data(y_test, test_probs),
+        },
+        "feature_importances": feature_importances,
+    }
+
+    joblib.dump(final_model, model_path)
+    feature_config_path.write_text(json.dumps(feature_config, indent=2), encoding="utf-8")
+    metadata_path.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+    logger.info("Tuned model saved. Test accuracy=%.3f", test_metrics["accuracy"])
     return metadata
 
 
