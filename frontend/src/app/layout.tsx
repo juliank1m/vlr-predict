@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import { Crosshair, Swords, ChartNoAxesCombined, List } from "lucide-react";
 import Link from "next/link";
+import { MapBackground } from "@/components/map-background";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -40,7 +41,8 @@ export default function RootLayout({
       className={`${dmSans.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col">
-        <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <MapBackground />
+        <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-md">
           <div className="mx-auto flex h-11 max-w-6xl items-center px-4">
             <Link href="/" className="mr-8 font-bold text-sm tracking-[0.2em] uppercase text-primary">
               Val<span className="text-foreground">/</span>Predict
@@ -59,7 +61,7 @@ export default function RootLayout({
             </nav>
           </div>
         </header>
-        <main className="flex-1">
+        <main className="relative z-10 flex-1">
           <div className="mx-auto max-w-6xl px-4 py-6">{children}</div>
         </main>
       </body>

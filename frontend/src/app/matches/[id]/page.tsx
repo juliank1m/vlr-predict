@@ -65,7 +65,7 @@ export default function MatchDetailPage() {
             backgroundPosition: "center",
           }}
         >
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
+          <div className="absolute inset-0 bg-background/55 backdrop-blur-[1px]" />
         </div>
       )}
       <div className="relative z-10 space-y-8 -mt-3">
