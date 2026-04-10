@@ -9,22 +9,40 @@ from app.database import SyncSessionLocal
 router = APIRouter()
 
 
-def _list_matches_sync(page: int, page_size: int, resolved_only: bool) -> dict[str, object]:
+def _list_matches_sync(
+    page: int, page_size: int, resolved_only: bool, search: str | None = None,
+) -> dict[str, object]:
     offset = (page - 1) * page_size
+    search_filter = ""
+    params: dict[str, object] = {
+        "resolved_only": resolved_only,
+        "limit": page_size,
+        "offset": offset,
+    }
+    if search:
+        search_filter = (
+            " AND (LOWER(t1.name) LIKE :search OR LOWER(t2.name) LIKE :search"
+            " OR LOWER(mt.event) LIKE :search)"
+        )
+        params["search"] = f"%{search.lower()}%"
+
     with SyncSessionLocal() as session:
         total = session.execute(
             text(
-                """
+                f"""
                 SELECT COUNT(*)
-                FROM matches
-                WHERE (:resolved_only = FALSE OR winner_id IS NOT NULL)
+                FROM matches mt
+                JOIN teams t1 ON t1.id = mt.team1_id
+                JOIN teams t2 ON t2.id = mt.team2_id
+                WHERE (:resolved_only = FALSE OR mt.winner_id IS NOT NULL)
+                {search_filter}
                 """
             ),
-            {"resolved_only": resolved_only},
+            params,
         ).scalar()
         rows = session.execute(
             text(
-                """
+                f"""
                 SELECT
                     mt.id,
                     mt.date,
@@ -46,6 +64,7 @@ def _list_matches_sync(page: int, page_size: int, resolved_only: bool) -> dict[s
                 LEFT JOIN teams w ON w.id = mt.winner_id
                 LEFT JOIN maps m ON m.match_id = mt.id
                 WHERE (:resolved_only = FALSE OR mt.winner_id IS NOT NULL)
+                {search_filter}
                 GROUP BY
                     mt.id, mt.date, mt.team1_id, t1.name, mt.team2_id, t2.name,
                     mt.team1_score, mt.team2_score, mt.winner_id, w.name,
@@ -54,11 +73,7 @@ def _list_matches_sync(page: int, page_size: int, resolved_only: bool) -> dict[s
                 LIMIT :limit OFFSET :offset
                 """
             ),
-            {
-                "resolved_only": resolved_only,
-                "limit": page_size,
-                "offset": offset,
-            },
+            params,
         ).mappings().all()
 
     return {
@@ -167,9 +182,12 @@ async def list_matches(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=25, ge=1, le=100),
     resolved_only: bool = True,
+    search: str | None = Query(default=None, max_length=200),
 ):
     """List recent match results."""
-    return await run_in_threadpool(_list_matches_sync, page, page_size, resolved_only)
+    return await run_in_threadpool(
+        _list_matches_sync, page, page_size, resolved_only, search
+    )
 
 
 @router.get("/{match_id}")

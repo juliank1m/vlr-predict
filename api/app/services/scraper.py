@@ -765,6 +765,7 @@ def scrape_recent_matches(pages: int = 3, cancel_check: callable = None) -> int:
                         new_logos += 1
 
                     _insert_match_data(db, match, games, player_rows, team_cache, player_cache)
+                    db.flush()
 
                     # Extract and store map veto data
                     t1_id = team_cache.get(match["team1"].strip()) if match["team1"] else None
