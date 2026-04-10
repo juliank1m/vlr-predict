@@ -27,7 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Brain, BarChart3, Activity } from "lucide-react";
+import { Brain, BarChart3, Activity, Target, TrendingDown, Crosshair, Layers } from "lucide-react";
 import {
   getModelAccuracy,
   getModelFeatures,
@@ -88,7 +88,7 @@ export default function ModelPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const calibrationBins: { bin: number; range: number[]; count: number; avg_predicted: number | null; actual_rate: number | null }[] = accuracy.test?.calibration ?? [];
   const calibrationData = calibrationBins
-    .filter((b) => b.avg_predicted != null && b.actual_rate != null)
+    .filter((b) => b.avg_predicted != null && b.actual_rate != null && b.count >= 5)
     .map((b) => ({
       predicted: +(b.avg_predicted! * 100).toFixed(1),
       actual: +(b.actual_rate! * 100).toFixed(1),
@@ -98,8 +98,11 @@ export default function ModelPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-widest">Model Performance</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-widest flex items-center gap-2">
+          <Brain size={22} className="text-primary" />
+          Model Performance
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
           {accuracy.model_type} ({accuracy.model_version}) — trained{" "}
           {new Date(accuracy.trained_at).toLocaleDateString()}
         </p>
@@ -115,28 +118,37 @@ export default function ModelPage() {
               value: fm.accuracy
                 ? `${(fm.accuracy * 100).toFixed(1)}%`
                 : "—",
+              icon: Target,
+              color: "text-primary",
             },
             {
               label: "Test Log-Loss",
               value: fm.log_loss
                 ? fm.log_loss.toFixed(4)
                 : "—",
+              icon: TrendingDown,
+              color: "text-destructive",
             },
             {
               label: "Test Brier",
               value: fm.brier_score
                 ? fm.brier_score.toFixed(4)
                 : "—",
+              icon: Crosshair,
+              color: "text-accent",
             },
             {
               label: "CV Folds",
               value: String(accuracy.rolling.length),
+              icon: Layers,
+              color: "text-muted-foreground",
             },
           ];
         })().map((stat) => (
-          <Card key={stat.label} >
-            <CardContent className="pt-6 text-center">
-              <p className="text-2xl font-bold">{stat.value}</p>
+          <Card key={stat.label}>
+            <CardContent className="pt-6 text-center space-y-1">
+              <stat.icon size={18} className={`mx-auto ${stat.color} mb-2`} />
+              <p className="text-2xl font-bold font-mono">{stat.value}</p>
               <p className="text-xs text-muted-foreground">{stat.label}</p>
             </CardContent>
           </Card>

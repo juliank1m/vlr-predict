@@ -14,6 +14,7 @@ import {
 import { TeamSearch } from "@/components/team-search";
 import { TeamLogo } from "@/components/team-logo";
 import { WinProbBar } from "@/components/win-prob-bar";
+import { ArrowRight, Swords } from "lucide-react";
 import {
   predict,
   predictSeries,
@@ -71,44 +72,55 @@ export default function ComparePage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-widest">Head-to-Head</h1>
-        <p className="text-muted-foreground">
+      {/* Hero header */}
+      <div className="text-center space-y-1">
+        <div className="flex items-center justify-center gap-2">
+          <Swords size={20} className="text-primary" />
+          <h1 className="text-2xl font-bold tracking-widest">Head-to-Head</h1>
+        </div>
+        <p className="text-muted-foreground text-sm">
           Compare two teams and get a model prediction.
         </p>
       </div>
 
+      {/* Team selector */}
       <Card className="overflow-visible">
         <CardContent className="pt-6 space-y-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto_1fr]">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Team 1</label>
+            <div className="space-y-3">
+              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Team 1</label>
               <TeamSearch label="Select team..." value={team1} onSelect={setTeam1} />
               {team1 && (
-                <div className="text-xs text-muted-foreground">
-                  <Link href={`/teams/${team1.id}`} className="hover:underline">
-                    View profile
-                  </Link>
-                  {team1.current_elo && (
-                    <span className="ml-2">{Math.round(team1.current_elo)} Elo</span>
-                  )}
+                <div className="flex items-center gap-3">
+                  <TeamLogo name={team1.name} size={32} />
+                  <div>
+                    <Link href={`/teams/${team1.id}`} className="text-sm font-medium hover:underline">
+                      {team1.name}
+                    </Link>
+                    {team1.current_elo && (
+                      <p className="text-xs text-muted-foreground font-mono">{Math.round(team1.current_elo)} Elo</p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
-            <span className="hidden sm:flex items-center text-lg font-bold text-muted-foreground">
-              vs
-            </span>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Team 2</label>
+            <div className="hidden sm:flex items-center">
+              <span className="text-2xl font-bold text-primary/30">vs</span>
+            </div>
+            <div className="space-y-3">
+              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Team 2</label>
               <TeamSearch label="Select team..." value={team2} onSelect={setTeam2} />
               {team2 && (
-                <div className="text-xs text-muted-foreground">
-                  <Link href={`/teams/${team2.id}`} className="hover:underline">
-                    View profile
-                  </Link>
-                  {team2.current_elo && (
-                    <span className="ml-2">{Math.round(team2.current_elo)} Elo</span>
-                  )}
+                <div className="flex items-center gap-3">
+                  <TeamLogo name={team2.name} size={32} />
+                  <div>
+                    <Link href={`/teams/${team2.id}`} className="text-sm font-medium hover:underline">
+                      {team2.name}
+                    </Link>
+                    {team2.current_elo && (
+                      <p className="text-xs text-muted-foreground font-mono">{Math.round(team2.current_elo)} Elo</p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -117,9 +129,10 @@ export default function ComparePage() {
           <button
             onClick={handleCompare}
             disabled={!team1 || !team2 || loading}
-            className="inline-flex items-center justify-center bg-primary px-6 py-2 text-xs font-bold uppercase tracking-widest text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+            className="inline-flex items-center gap-2 bg-primary px-6 py-2.5 text-xs font-bold uppercase tracking-widest text-primary-foreground transition-colors hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
           >
             {loading ? "Predicting..." : "Compare"}
+            {!loading && <ArrowRight size={14} />}
           </button>
 
           {error && (
@@ -128,8 +141,9 @@ export default function ComparePage() {
         </CardContent>
       </Card>
 
+      {/* Prediction result */}
       {result && (
-        <Card >
+        <Card>
           <CardHeader>
             <CardTitle className="text-sm tracking-widest">Prediction Result</CardTitle>
           </CardHeader>
@@ -141,17 +155,17 @@ export default function ComparePage() {
             />
 
             <div className="grid grid-cols-2 gap-4 text-center">
-              <div className="rounded-lg border p-4">
-                <p className="text-2xl font-bold">
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                <p className="text-3xl font-bold font-mono text-primary">
                   {Math.round(result.team1_win_prob * 100)}%
                 </p>
-                <p className="text-sm text-muted-foreground">{result.team1.name}</p>
+                <p className="text-sm text-muted-foreground mt-1">{result.team1.name}</p>
               </div>
-              <div className="rounded-lg border p-4">
-                <p className="text-2xl font-bold">
+              <div className="rounded-lg border border-accent/20 bg-accent/5 p-4">
+                <p className="text-3xl font-bold font-mono text-accent">
                   {Math.round(result.team2_win_prob * 100)}%
                 </p>
-                <p className="text-sm text-muted-foreground">{result.team2.name}</p>
+                <p className="text-sm text-muted-foreground mt-1">{result.team2.name}</p>
               </div>
             </div>
 
@@ -174,23 +188,23 @@ export default function ComparePage() {
               const t1 = result.team1.name;
               const t2 = result.team2.name;
               const lines = [
-                { label: `${t1} 2-0`, value: probs["2-0"] ?? 0, side: "team1" },
-                { label: `${t1} 2-1`, value: probs["2-1"] ?? 0, side: "team1" },
-                { label: `${t2} 2-1`, value: probs["1-2"] ?? 0, side: "team2" },
-                { label: `${t2} 2-0`, value: probs["0-2"] ?? 0, side: "team2" },
+                { label: `${t1} 2-0`, value: probs["2-0"] ?? 0, side: "team1" as const },
+                { label: `${t1} 2-1`, value: probs["2-1"] ?? 0, side: "team1" as const },
+                { label: `${t2} 2-1`, value: probs["1-2"] ?? 0, side: "team2" as const },
+                { label: `${t2} 2-0`, value: probs["0-2"] ?? 0, side: "team2" as const },
               ];
               const maxVal = Math.max(...lines.map((l) => l.value));
               return (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {lines.map((line) => (
                     <div key={line.label} className="flex items-center gap-3">
-                      <span className="text-xs font-medium w-24 text-right shrink-0">
+                      <span className="text-xs font-medium w-28 text-right shrink-0">
                         {line.label}
                       </span>
-                      <div className="flex-1 h-7 bg-muted/30 rounded overflow-hidden relative">
+                      <div className="flex-1 h-8 bg-muted/30 rounded overflow-hidden relative">
                         <div
-                          className={`h-full rounded transition-all ${
-                            line.side === "team1" ? "bg-primary" : "bg-accent"
+                          className={`h-full rounded transition-all duration-500 ${
+                            line.side === "team1" ? "bg-primary/80" : "bg-accent/80"
                           }`}
                           style={{ width: `${maxVal > 0 ? (line.value / maxVal) * 100 : 0}%` }}
                         />
@@ -204,8 +218,8 @@ export default function ComparePage() {
               );
             })()}
             {seriesResult.series_win_prob != null && (
-              <p className="text-xs text-muted-foreground pt-2">
-                Series win: {result.team1.name} {(seriesResult.series_win_prob * 100).toFixed(0)}% — {result.team2.name} {((1 - seriesResult.series_win_prob) * 100).toFixed(0)}%
+              <p className="text-xs text-muted-foreground pt-2 border-t border-border/50">
+                Series win: <span className="text-primary font-semibold">{result.team1.name} {(seriesResult.series_win_prob * 100).toFixed(0)}%</span> — <span className="text-accent font-semibold">{result.team2.name} {((1 - seriesResult.series_win_prob) * 100).toFixed(0)}%</span>
               </p>
             )}
           </CardContent>
@@ -326,13 +340,13 @@ export default function ComparePage() {
             {h2hMatches.map((m) => (
               <div
                 key={m.match_id}
-                className="flex items-center justify-between text-sm rounded border px-3 py-2"
+                className="flex items-center justify-between text-sm rounded border border-border/50 px-3 py-2"
               >
                 <div className="flex items-center gap-2">
                   <span className={m.winner_id === team1?.id ? "font-bold" : "text-muted-foreground"}>
                     {profile1.name}
                   </span>
-                  <span className="font-mono text-xs">
+                  <span className="font-mono text-xs px-2 py-0.5 bg-muted/50 rounded">
                     {m.team1_score} - {m.team2_score}
                   </span>
                   <span className={m.winner_id === team2?.id ? "font-bold" : "text-muted-foreground"}>

@@ -1,13 +1,15 @@
 {
   "best_params": {
-    "n_estimators": 500,
-    "max_depth": 4,
-    "learning_rate": 0.03,
-    "subsample": 0.8,
-    "colsample_bytree": 0.7,
-    "reg_lambda": 2.0
+    "n_estimators": 600,
+    "max_depth": 5,
+    "learning_rate": 0.02,
+    "subsample": 0.85,
+    "colsample_bytree": 0.75,
+    "reg_lambda": 1.5
   },
-  "best_log_loss": 0.6555640680360245,
+  "best_cv_log_loss": 0.6538093160260214,
+  "tuned_test_accuracy": 0.6516516516516516,
+  "current_test_accuracy": 0.6546546546546547,
   "all_results": [
     {
       "config": {
@@ -18,7 +20,7 @@
         "colsample_bytree": 0.8,
         "reg_lambda": 1.0
       },
-      "avg_log_loss": 0.6575873805753966,
+      "avg_log_loss": 0.6555709759323138,
       "folds": 3
     },
     {
@@ -30,7 +32,7 @@
         "colsample_bytree": 0.7,
         "reg_lambda": 2.0
       },
-      "avg_log_loss": 0.6555640680360245,
+      "avg_log_loss": 0.6551004051870863,
       "folds": 3
     },
     {
@@ -42,7 +44,7 @@
         "colsample_bytree": 0.85,
         "reg_lambda": 0.5
       },
-      "avg_log_loss": 0.65907030181261,
+      "avg_log_loss": 0.66120726538905,
       "folds": 3
     },
     {
@@ -54,7 +56,7 @@
         "colsample_bytree": 0.9,
         "reg_lambda": 1.0
       },
-      "avg_log_loss": 0.6574967103257867,
+      "avg_log_loss": 0.6578802350587106,
       "folds": 3
     },
     {
@@ -66,7 +68,7 @@
         "colsample_bytree": 0.75,
         "reg_lambda": 1.5
       },
-      "avg_log_loss": 0.6557592103112334,
+      "avg_log_loss": 0.6538093160260214,
       "folds": 3
     },
     {
@@ -78,7 +80,7 @@
         "colsample_bytree": 0.8,
         "reg_lambda": 0.8
       },
-      "avg_log_loss": 0.6594514541386185,
+      "avg_log_loss": 0.6596887328766707,
       "folds": 3
     },
     {
@@ -90,7 +92,7 @@
         "colsample_bytree": 0.9,
         "reg_lambda": 1.5
       },
-      "avg_log_loss": 0.6569502626686258,
+      "avg_log_loss": 0.6561668149648894,
       "folds": 3
     },
     {
@@ -102,9 +104,10 @@
         "colsample_bytree": 0.7,
         "reg_lambda": 2.0
       },
-      "avg_log_loss": 0.6620813060412629,
+      "avg_log_loss": 0.6627110507111795,
       "folds": 3
     }
   ],
-  "tuned_at": "2026-04-02T07:55:46.735071+00:00"
+  "tuned_at": "2026-04-10T08:29:45.374480+00:00",
+  "status": "pending"
 }
