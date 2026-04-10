@@ -72,6 +72,11 @@ FEATURE_NAMES += [
     "team1_map_elo", "team2_map_elo", "map_elo_diff",
 ]
 FEATURE_NAMES += [
+    "team1_star_rating", "team2_star_rating", "star_rating_diff",
+    "team1_weak_link_rating", "team2_weak_link_rating",
+    "team1_rating_spread", "team2_rating_spread", "rating_spread_diff",
+]
+FEATURE_NAMES += [
     "team1_pistol_wr", "team2_pistol_wr", "pistol_wr_diff",
     "team1_attack_wr", "team2_attack_wr", "attack_wr_diff",
     "team1_defense_wr", "team2_defense_wr", "defense_wr_diff",
@@ -247,6 +252,33 @@ _PICK_WIN_RATE_SQL = text("""
       AND mt.date < :match_date
 """)
 
+_PLAYER_RATINGS_SQL = text("""
+    WITH recent_maps AS (
+        SELECT m.id AS map_id
+        FROM maps m
+        JOIN matches mt ON m.match_id = mt.id
+        WHERE (mt.team1_id = :team_id OR mt.team2_id = :team_id)
+          AND mt.date IS NOT NULL
+          AND mt.date < :match_date
+        ORDER BY mt.date DESC, m.map_number DESC
+        LIMIT 10
+    ),
+    player_ratings AS (
+        SELECT ps.player_id, AVG(ps.rating) AS avg_rating
+        FROM player_map_stats ps
+        WHERE ps.team_id = :team_id
+          AND ps.map_id IN (SELECT map_id FROM recent_maps)
+          AND ps.rating IS NOT NULL
+        GROUP BY ps.player_id
+        HAVING COUNT(*) >= 3
+    )
+    SELECT
+        MAX(avg_rating),
+        MIN(avg_rating),
+        STDDEV_POP(avg_rating)
+    FROM player_ratings
+""")
+
 _ROUND_STATS_SQL = text("""
     WITH recent_maps AS (
         SELECT m.id AS map_id, mt.team1_id, mt.team2_id
@@ -379,6 +411,7 @@ def compute_features(
     f.update(_roster_features(session, team1_id, team2_id, match_date))
     f.update(_pick_ban_features(session, team1_id, team2_id, map_id, match_date))
     f.update(_round_features(session, team1_id, team2_id, match_date))
+    f.update(_player_features(session, team1_id, team2_id, match_date))
 
     return f
 
@@ -740,5 +773,36 @@ def _round_features(
         t1 = f.get(f"team1_{key}")
         t2 = f.get(f"team2_{key}")
         f[f"{key}_diff"] = (t1 - t2) if (t1 is not None and t2 is not None) else None
+
+    return f
+
+
+def _player_features(
+    session: Session, team1_id: int, team2_id: int, match_date: datetime,
+) -> dict[str, float | None]:
+    """Compute player distribution features: star rating, weak link, spread."""
+    f: dict[str, float | None] = {}
+
+    for label, tid in (("team1", team1_id), ("team2", team2_id)):
+        row = session.execute(
+            _PLAYER_RATINGS_SQL, {"team_id": tid, "match_date": match_date},
+        ).fetchone()
+
+        if row and row[0] is not None:
+            f[f"{label}_star_rating"] = float(row[0])
+            f[f"{label}_weak_link_rating"] = float(row[1])
+            f[f"{label}_rating_spread"] = float(row[2]) if row[2] is not None else 0.0
+        else:
+            f[f"{label}_star_rating"] = None
+            f[f"{label}_weak_link_rating"] = None
+            f[f"{label}_rating_spread"] = None
+
+    t1_star = f.get("team1_star_rating")
+    t2_star = f.get("team2_star_rating")
+    f["star_rating_diff"] = (t1_star - t2_star) if (t1_star is not None and t2_star is not None) else None
+
+    t1_spread = f.get("team1_rating_spread")
+    t2_spread = f.get("team2_rating_spread")
+    f["rating_spread_diff"] = (t1_spread - t2_spread) if (t1_spread is not None and t2_spread is not None) else None
 
     return f

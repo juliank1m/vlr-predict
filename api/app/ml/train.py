@@ -27,6 +27,18 @@ from app.ml.feature_importance import rank_feature_importance
 from app.services.features import DEFAULT_MEDIANS, FEATURE_NAMES, compute_features
 from app.services.predictor import resolve_artifact_path
 
+_VCT_TEAMS_SQL = text("""
+    SELECT DISTINCT team_id FROM (
+        SELECT team1_id AS team_id FROM matches
+        WHERE event SIMILAR TO '(Champions Tour 202%|VCT 202%|Valorant Champions 202%|Challengers 202%)%'
+          AND event NOT SIMILAR TO '%(Game Changers)%'
+        UNION
+        SELECT team2_id FROM matches
+        WHERE event SIMILAR TO '(Champions Tour 202%|VCT 202%|Valorant Champions 202%|Challengers 202%)%'
+          AND event NOT SIMILAR TO '%(Game Changers)%'
+    ) sub
+""")
+
 _TRAINING_ROWS_SQL = text(
     """
     SELECT
@@ -174,6 +186,14 @@ def default_feature_imputation() -> dict[str, float]:
             defaults[name] = 0.3
         elif name in ("pistol_wr_diff", "attack_wr_diff", "defense_wr_diff"):
             defaults[name] = 0.0
+        elif name.endswith("_star_rating"):
+            defaults[name] = 1.0
+        elif name.endswith("_weak_link_rating"):
+            defaults[name] = 1.0
+        elif name.endswith("_rating_spread"):
+            defaults[name] = 0.0
+        elif name in ("star_rating_diff", "rating_spread_diff"):
+            defaults[name] = 0.0
         else:
             defaults[name] = 0.0
     return defaults
@@ -195,12 +215,20 @@ def apply_imputation(frame: pd.DataFrame, imputation_values: dict[str, float]) -
     return frame.fillna(value=imputation_values).astype(float)
 
 
+def load_vct_team_ids(session: Session) -> set[int]:
+    """Return the set of team IDs that have participated in VCT tier 1/2 events."""
+    rows = session.execute(_VCT_TEAMS_SQL).fetchall()
+    return {row[0] for row in rows}
+
+
 def load_training_rows(session: Session, limit: int | None = None) -> list[dict[str, Any]]:
     """Load chronologically ordered resolved maps for training."""
     rows = session.execute(_TRAINING_ROWS_SQL).mappings().all()
+    result = [dict(row) for row in rows]
+    logger.info("Training rows: %d", len(result))
     if limit is not None:
-        rows = rows[:limit]
-    return [dict(row) for row in rows]
+        result = result[:limit]
+    return result
 
 
 def build_training_dataset(session: Session, *, limit: int | None = None, cancel_check: callable = None) -> pd.DataFrame:

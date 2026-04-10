@@ -176,6 +176,21 @@ def resolve_team(
     raise LookupError(f"Unknown team name: {team_name}")
 
 
+def _check_vct_teams(session: Session, team1_id: int, team2_id: int) -> str | None:
+    """Return a warning string if either team is not in the VCT tier 1/2 set."""
+    from app.ml.train import load_vct_team_ids
+
+    vct_ids = load_vct_team_ids(session)
+    non_vct = []
+    if team1_id not in vct_ids:
+        non_vct.append("team1")
+    if team2_id not in vct_ids:
+        non_vct.append("team2")
+    if non_vct:
+        return f"Warning: {' and '.join(non_vct)} not in VCT tier 1/2. Prediction may be less accurate."
+    return None
+
+
 def predict_matchup(
     session: Session,
     *,
@@ -199,12 +214,16 @@ def predict_matchup(
     )
     vector = _prepare_vector(features, bundle.feature_names, bundle.imputation_values)
     probability = _predict_probability(bundle.model, vector)
-    return {
+    warning = _check_vct_teams(session, team1_id, team2_id)
+    result: dict[str, Any] = {
         "team1_win_prob": probability,
         "team2_win_prob": 1.0 - probability,
         "model_version": bundle.model_version,
         "match_date": cutoff,
     }
+    if warning:
+        result["warning"] = warning
+    return result
 
 
 def _get_common_maps(session: Session, team1_id: int, team2_id: int) -> list[str]:
