@@ -21,6 +21,7 @@ Thumbs.db
 
 # ML artifacts (tracked for deployment; retrain to update)
 # models/*.joblib
+api/models/*_candidate.*
 
 # Pytest
 .pytest_cache/

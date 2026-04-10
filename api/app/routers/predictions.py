@@ -153,7 +153,7 @@ def _predict_sync(payload: PredictionRequest) -> dict[str, object]:
             match_date=payload.match_date,
         )
 
-    return {
+    response: dict[str, object] = {
         "team1": {"id": team1.id, "name": team1.name},
         "team2": {"id": team2.id, "name": team2.name},
         "map_name": payload.map_name,
@@ -162,6 +162,9 @@ def _predict_sync(payload: PredictionRequest) -> dict[str, object]:
         "team2_win_prob": result["team2_win_prob"],
         "model_version": result["model_version"],
     }
+    if result.get("warning"):
+        response["warning"] = result["warning"]
+    return response
 
 
 def _predict_series_sync(payload: PredictionRequest) -> dict[str, object]:

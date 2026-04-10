@@ -8,7 +8,7 @@ from collections import deque
 from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from app.config import get_settings
@@ -143,27 +143,6 @@ def _scrape_task(pages: int = 5) -> dict:
     return {"new_matches": count}
 
 
-def _elo_task_inner() -> dict:
-    from app.services.compute_elo import compute_all_elo
-
-    _job_log("elo", "Starting Elo recomputation...")
-    compute_all_elo(cancel_check=lambda: check_cancelled("elo"))
-    _job_log("elo", "Elo recomputation complete")
-    return {"status": "done"}
-
-
-def _retrain_task_inner() -> dict:
-    from app.ml.train import train_and_save
-
-    _job_log("retrain", "Starting model training...")
-    metadata = train_and_save(cancel_check=lambda: check_cancelled("retrain"))
-    _job_log("retrain", "Training complete: version=%s", metadata.get("model_version"))
-    return {
-        "model_version": metadata.get("model_version"),
-        "row_count": metadata.get("row_count"),
-        "test_accuracy": metadata.get("test", {}).get("full_model", {}).get("accuracy"),
-    }
-
 
 def _job_log(job_id: str, msg: str, *args):
     """Write directly to a job's log buffer."""
@@ -179,11 +158,25 @@ def _job_log(job_id: str, msg: str, *args):
 
 
 def _elo_task() -> dict:
-    return _elo_task_inner()
+    from app.services.compute_elo import compute_all_elo
+
+    _job_log("elo", "Starting Elo recomputation...")
+    compute_all_elo(cancel_check=lambda: check_cancelled("elo"))
+    _job_log("elo", "Elo recomputation complete")
+    return {"status": "done"}
 
 
 def _retrain_task() -> dict:
-    return _retrain_task_inner()
+    from app.ml.train import train_and_save
+
+    _job_log("retrain", "Starting model training...")
+    metadata = train_and_save(cancel_check=lambda: check_cancelled("retrain"))
+    _job_log("retrain", "Training complete: version=%s", metadata.get("model_version"))
+    return {
+        "model_version": metadata.get("model_version"),
+        "row_count": metadata.get("row_count"),
+        "test_accuracy": metadata.get("test", {}).get("full_model", {}).get("accuracy"),
+    }
 
 
 def _backfill_veto_task() -> dict:
@@ -275,9 +268,8 @@ async def backfill_logos(
     from sqlalchemy import text
 
     logos = await request.json()
-    db = SyncSessionLocal()
     updated = 0
-    try:
+    with SyncSessionLocal() as db:
         for name, url in logos.items():
             r = db.execute(
                 text("UPDATE teams SET logo_url = :url WHERE name = :name AND logo_url IS NULL"),
@@ -285,8 +277,6 @@ async def backfill_logos(
             )
             updated += r.rowcount
         db.commit()
-    finally:
-        db.close()
     return {"updated": updated, "submitted": len(logos)}
 
 
