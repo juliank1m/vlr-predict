@@ -209,9 +209,11 @@ export async function getTeamPlayers(id: number) {
   );
 }
 
-export async function listMatches(page = 1, pageSize = 25) {
+export async function listMatches(page = 1, pageSize = 25, search?: string) {
+  const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
+  if (search) params.set("search", search);
   return fetchAPI<{ items: MatchSummary[]; page: number; page_size: number; total: number }>(
-    `/api/matches?page=${page}&page_size=${pageSize}`
+    `/api/matches?${params}`
   );
 }
 
