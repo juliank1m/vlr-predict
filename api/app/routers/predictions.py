@@ -201,29 +201,26 @@ async def get_prediction_history(limit: int = Query(default=100, ge=1, le=500)):
     return await run_in_threadpool(_get_prediction_history_sync, limit)
 
 
-@adhoc_router.post("/predict")
-@limiter.limit("10/minute")
-async def predict(request: Request, payload: PredictionRequest):
-    """Return an ad-hoc team1 win probability for a matchup."""
+async def _run_predict(fn, payload: PredictionRequest) -> dict[str, object]:
     try:
-        return await run_in_threadpool(_predict_sync, payload)
+        return await run_in_threadpool(fn, payload)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@adhoc_router.post("/predict")
+@limiter.limit("10/minute")
+async def predict(request: Request, payload: PredictionRequest):
+    """Return an ad-hoc team1 win probability for a matchup."""
+    return await _run_predict(_predict_sync, payload)
 
 
 @adhoc_router.post("/predict/series")
 @limiter.limit("10/minute")
 async def predict_series_endpoint(request: Request, payload: PredictionRequest):
     """Return per-map predictions and Bo3 score line probabilities."""
-    try:
-        return await run_in_threadpool(_predict_series_sync, payload)
-    except FileNotFoundError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
-    except LookupError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return await _run_predict(_predict_series_sync, payload)

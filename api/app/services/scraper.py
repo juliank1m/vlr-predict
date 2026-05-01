@@ -29,11 +29,6 @@ MAX_FETCH_ATTEMPTS = 4
 RETRY_BASE_DELAY = 2
 
 
-
-# ---------------------------------------------------------------------------
-# HTTP helpers
-# ---------------------------------------------------------------------------
-
 def _fetch(session: requests.Session, url: str) -> BeautifulSoup:
     """Fetch a page with retries and return parsed HTML."""
     for attempt in range(1, MAX_FETCH_ATTEMPTS + 1):
@@ -134,7 +129,7 @@ def _extract_rounds(panel: Tag, game: dict, team1_id: int, team2_id: int) -> lis
     for col in rounds_el.select(".vlr-rounds-row-col[title]"):
         title = col.get("title", "").strip()
         if not title:
-            continue  # unplayed round
+            continue
 
         rnd_num_el = col.select_one(".rnd-num")
         if not rnd_num_el:
@@ -163,9 +158,9 @@ def _extract_rounds(panel: Tag, game: dict, team1_id: int, team2_id: int) -> lis
             winner_team_id = team1_id if i == 0 else team2_id
             is_ct = "mod-ct" in classes
             is_t = "mod-t" in classes
-            if i == 0:  # team1 won
+            if i == 0:
                 team1_side = "ct" if is_ct else ("t" if is_t else None)
-            else:  # team2 won
+            else:
                 team1_side = "t" if is_ct else ("ct" if is_t else None)
             img = sq.select_one("img[src]")
             if img:
@@ -225,10 +220,6 @@ def _parse_date(date_str: str | None, time_str: str | None = None) -> datetime |
         return None
 
 
-# ---------------------------------------------------------------------------
-# Results page parsing (adapted from scrape_results.py)
-# ---------------------------------------------------------------------------
-
 def _parse_results_page(soup: BeautifulSoup) -> list[dict]:
     """Parse a VLR results page into match dicts."""
     container = soup.select_one("div.col.mod-1")
@@ -276,13 +267,8 @@ def _parse_results_page(soup: BeautifulSoup) -> list[dict]:
     return matches
 
 
-# ---------------------------------------------------------------------------
-# Match detail parsing (adapted from scrape_games.py + scrape_player_stats.py)
-# ---------------------------------------------------------------------------
-
 def _extract_games(soup: BeautifulSoup, match: dict) -> list[dict]:
     """Extract game/map rows from a match detail page."""
-    # Build map number lookup from nav
     nav_lookup: dict[str, int] = {}
     for nav in soup.select(".vm-stats-gamesnav-item[data-game-id]"):
         gid = nav.get("data-game-id")
@@ -406,10 +392,6 @@ def _extract_players(soup: BeautifulSoup, match: dict, games: list[dict]) -> lis
     return rows
 
 
-# ---------------------------------------------------------------------------
-# Database insertion
-# ---------------------------------------------------------------------------
-
 def _get_or_create_team(session: Session, name: str | None, cache: dict[str, int]) -> int | None:
     if not name or not name.strip():
         return None
@@ -509,10 +491,6 @@ def _insert_match_data(
             first_deaths=_to_int(p.get("first_deaths")),
         ))
 
-
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
 
 def backfill_veto_data(batch_size: int = 200, cancel_check: callable = None) -> int:
     """Re-scrape ALL remaining matches to extract veto data. Returns count updated."""

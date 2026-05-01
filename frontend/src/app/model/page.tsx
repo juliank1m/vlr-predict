@@ -108,7 +108,6 @@ export default function ModelPage() {
         </p>
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {(() => {
           const fm = accuracy.test.full_model ?? accuracy.test;
@@ -155,7 +154,6 @@ export default function ModelPage() {
         ))}
       </div>
 
-      {/* Calibration curve */}
       {calibrationData.length > 0 && (
         <Card>
           <CardHeader>
@@ -201,7 +199,6 @@ export default function ModelPage() {
         </Card>
       )}
 
-      {/* Rolling accuracy chart */}
       {rollingData.length > 0 && (
         <Card>
           <CardHeader>
@@ -238,7 +235,6 @@ export default function ModelPage() {
         </Card>
       )}
 
-      {/* Rolling log-loss chart */}
       {rollingData.length > 0 && (
         <Card>
           <CardHeader>
@@ -270,7 +266,6 @@ export default function ModelPage() {
         </Card>
       )}
 
-      {/* Feature importance */}
       {topFeatures.length > 0 && (
         <Card>
           <CardHeader>
@@ -305,7 +300,6 @@ export default function ModelPage() {
         </Card>
       )}
 
-      {/* Prediction log */}
       {historyItems.length > 0 && (
         <Card>
           <CardHeader>

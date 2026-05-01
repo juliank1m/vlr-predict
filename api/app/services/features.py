@@ -27,10 +27,6 @@ from datetime import datetime
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
 MIN_MAPS_FOR_STATS = 3
 _ROLLING_WINDOWS = (10, 20)
 _STAT_KEYS = (
@@ -48,7 +44,6 @@ DEFAULT_MEDIANS: dict[str, float] = {
     "win_rate": 0.5,
 }
 
-# Build feature name list programmatically for consistency
 FEATURE_NAMES: list[str] = ["team1_elo", "team2_elo", "elo_diff"]
 for _n in _ROLLING_WINDOWS:
     for _side in ("team1", "team2"):
@@ -82,10 +77,6 @@ FEATURE_NAMES += [
     "team1_defense_wr", "team2_defense_wr", "defense_wr_diff",
     "team1_comeback_rate", "team2_comeback_rate",
 ]
-
-# ---------------------------------------------------------------------------
-# SQL Templates (module-level for reuse across calls)
-# ---------------------------------------------------------------------------
 
 _ELO_SQL = text("""
     SELECT te.elo
@@ -366,10 +357,6 @@ _COMEBACK_SQL = text("""
     FROM halftime_scores
 """)
 
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
-
 def compute_features(
     session: Session,
     team1_id: int,
@@ -461,10 +448,6 @@ def feature_vector(features: dict[str, float | None]) -> list[float | None]:
     """Convert feature dict to ordered list matching FEATURE_NAMES."""
     return [features.get(name) for name in FEATURE_NAMES]
 
-
-# ---------------------------------------------------------------------------
-# Private helpers
-# ---------------------------------------------------------------------------
 
 def _to_float(val: object) -> float | None:
     return float(val) if val is not None else None

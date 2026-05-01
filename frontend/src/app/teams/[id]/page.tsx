@@ -95,7 +95,6 @@ export default function TeamProfilePage() {
         </div>
       </div>
 
-      {/* Elo Chart */}
       {chartData.length > 0 && (
         <Card>
           <CardHeader>
@@ -128,7 +127,6 @@ export default function TeamProfilePage() {
         </Card>
       )}
 
-      {/* Map Pool */}
       {team.map_pool.length > 0 && (
         <Card>
           <CardHeader>
@@ -165,7 +163,6 @@ export default function TeamProfilePage() {
         </Card>
       )}
 
-      {/* Recent Matches */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm tracking-widest flex items-center gap-2">
@@ -226,7 +223,6 @@ export default function TeamProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Roster */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm tracking-widest flex items-center gap-2">

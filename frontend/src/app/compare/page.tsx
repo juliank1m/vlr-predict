@@ -72,7 +72,6 @@ export default function ComparePage() {
 
   return (
     <div className="space-y-8">
-      {/* Hero header */}
       <div className="text-center space-y-1">
         <div className="flex items-center justify-center gap-2">
           <Swords size={20} className="text-primary" />
@@ -83,7 +82,6 @@ export default function ComparePage() {
         </p>
       </div>
 
-      {/* Team selector */}
       <Card className="overflow-visible">
         <CardContent className="pt-6 space-y-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto_1fr]">
@@ -141,7 +139,6 @@ export default function ComparePage() {
         </CardContent>
       </Card>
 
-      {/* Prediction result */}
       {result && (
         <Card>
           <CardHeader>
@@ -176,7 +173,6 @@ export default function ComparePage() {
         </Card>
       )}
 
-      {/* Bo3 Score Lines */}
       {seriesResult?.score_probs && result && (
         <Card>
           <CardHeader>
@@ -226,7 +222,6 @@ export default function ComparePage() {
         </Card>
       )}
 
-      {/* Side-by-side stats */}
       {profile1 && profile2 && (
         <Card>
           <CardHeader>
@@ -298,7 +293,6 @@ export default function ComparePage() {
                     {profile2.map_pool.length}
                   </TableCell>
                 </TableRow>
-                {/* Map-by-map comparison */}
                 {(() => {
                   const allMaps = [...new Set([
                     ...profile1.map_pool.map((m) => m.map_name),
@@ -328,7 +322,6 @@ export default function ComparePage() {
         </Card>
       )}
 
-      {/* H2H record */}
       {profile1 && profile2 && h2hMatches.length > 0 && (
         <Card>
           <CardHeader>

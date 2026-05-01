@@ -33,7 +33,6 @@ export default function HomePage() {
   const [sortBy, setSortBy] = useState<"date" | "confidence">("date");
   const [heroUrl, setHeroUrl] = useState<string | null>(null);
 
-  // ad-hoc prediction state
   const [team1, setTeam1] = useState<Team | null>(null);
   const [team2, setTeam2] = useState<Team | null>(null);
   const [adhocResult, setAdhocResult] = useState<AdHocPrediction | null>(null);
@@ -69,7 +68,6 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8">
-      {/* Hero section */}
       <div className="relative rounded-sm border border-border/30">
         {heroUrl && (
           <div
@@ -93,7 +91,6 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Quick prediction inline in hero */}
           <div className="max-w-2xl space-y-4">
             <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">Quick Prediction</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto_1fr]">
@@ -127,7 +124,6 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Upcoming predictions */}
       {predictions.length > 0 && (
         <>
           <div className="flex items-center justify-between">
@@ -191,7 +187,6 @@ export default function HomePage() {
 
       <AccentSeparator />
 
-      {/* Recent matches */}
       <h2 className="text-lg font-semibold flex items-center gap-2">
         <Trophy size={16} className="text-primary" />
         Recent Matches

@@ -364,7 +364,6 @@ export default function AdminPage() {
         ))}
       </div>
 
-      {/* Terminal log viewer */}
       {activeLog && (
         <Card className="border-border/50">
           <CardHeader className="py-2 px-4">

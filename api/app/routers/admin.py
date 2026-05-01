@@ -79,8 +79,10 @@ def _run_in_background(job_id: str, func, **kwargs) -> dict:
         _log_totals[job_id] = 0
         _cancel_events[job_id] = cancel_event
 
+    def _emit(level: int, msg: str) -> None:
+        handler.emit(logging.LogRecord("admin", level, "", 0, msg, (), None))
+
     def _worker():
-        # Attach handler to app loggers (not uvicorn/root to avoid feedback loop)
         app_logger = logging.getLogger("app")
         app_logger.setLevel(logging.DEBUG)
         app_logger.addHandler(handler)
@@ -92,38 +94,26 @@ def _run_in_background(job_id: str, func, **kwargs) -> dict:
                 "error": None,
             }
         try:
-            handler.emit(logging.LogRecord(
-                "admin", logging.INFO, "", 0,
-                f"Job '{job_id}' started", (), None,
-            ))
+            _emit(logging.INFO, f"Job '{job_id}' started")
             result = func(**kwargs)
             with _lock:
                 _jobs[job_id]["status"] = "completed"
                 _jobs[job_id]["result"] = result
                 _jobs[job_id]["completed_at"] = datetime.now(UTC).isoformat()
-            handler.emit(logging.LogRecord(
-                "admin", logging.INFO, "", 0,
-                f"Job '{job_id}' completed: {result}", (), None,
-            ))
+            _emit(logging.INFO, f"Job '{job_id}' completed: {result}")
         except JobCancelled:
             with _lock:
                 _jobs[job_id]["status"] = "failed"
                 _jobs[job_id]["error"] = "Cancelled by user"
                 _jobs[job_id]["completed_at"] = datetime.now(UTC).isoformat()
-            handler.emit(logging.LogRecord(
-                "admin", logging.WARNING, "", 0,
-                f"Job '{job_id}' cancelled", (), None,
-            ))
+            _emit(logging.WARNING, f"Job '{job_id}' cancelled")
         except Exception as e:
             logger.exception("Job %s failed", job_id)
             with _lock:
                 _jobs[job_id]["status"] = "failed"
                 _jobs[job_id]["error"] = str(e)
                 _jobs[job_id]["completed_at"] = datetime.now(UTC).isoformat()
-            handler.emit(logging.LogRecord(
-                "admin", logging.ERROR, "", 0,
-                f"Job '{job_id}' failed: {e}", (), None,
-            ))
+            _emit(logging.ERROR, f"Job '{job_id}' failed: {e}")
         finally:
             app_logger.removeHandler(handler)
 
@@ -141,7 +131,6 @@ def _scrape_task(pages: int = 5) -> dict:
     count = scrape_recent_matches(pages=pages, cancel_check=lambda: check_cancelled("scrape"))
     _job_log("scrape", "Scrape finished: %d new matches", count)
     return {"new_matches": count}
-
 
 
 def _job_log(job_id: str, msg: str, *args):

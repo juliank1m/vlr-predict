@@ -69,7 +69,6 @@ export default function MatchDetailPage() {
         </div>
       )}
       <div className="relative z-10 space-y-8 -mt-3">
-      {/* Header */}
       <div>
         <div className="flex items-center gap-5 text-3xl font-bold">
           <Link href={`/teams/${match.team1_id}`} className="flex items-center gap-3 hover:underline">
@@ -96,7 +95,6 @@ export default function MatchDetailPage() {
         </div>
       </div>
 
-      {/* Pre-match prediction */}
       {match.predictions && match.predictions.length > 0 && (() => {
         const seriesPred = match.predictions.find((p) => p.map_name == null) ?? match.predictions[0];
         return (
@@ -124,7 +122,6 @@ export default function MatchDetailPage() {
         );
       })()}
 
-      {/* Maps */}
       {match.maps.length > 0 && (
         <Tabs defaultValue={String(match.maps[0].id)} onValueChange={setActiveTab}>
           <TabsList>
