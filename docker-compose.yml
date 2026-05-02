@@ -41,18 +41,5 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
 
-  worker:
-    build: ./api
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-    command: ["python", "-m", "app.scheduler"]
-    environment:
-      DATABASE_URL: postgresql+asyncpg://vlr:${DB_PASSWORD:-changeme}@db:5432/vlr_predict
-      DATABASE_URL_SYNC: postgresql://vlr:${DB_PASSWORD:-changeme}@db:5432/vlr_predict
-    volumes:
-      - ./models:/app/models
-
 volumes:
   pgdata:

@@ -9,7 +9,6 @@ Pre-match win probability predictions for professional Valorant, powered by hist
 - **Backend:** FastAPI + SQLAlchemy + PostgreSQL
 - **ML:** XGBoost with 60 engineered features (Elo, rolling stats, map-specific, H2H, roster stability)
 - **Frontend:** Next.js 16 + TypeScript + Tailwind CSS + shadcn/ui + Recharts
-- **Scheduling:** APScheduler (daily scrape + weekly retrain)
 - **Deployment:** Railway (API + frontend + PostgreSQL)
 
 ## Local Development
@@ -60,8 +59,7 @@ vlr-predict/
 │   │   ├── models/          # SQLAlchemy ORM
 │   │   ├── services/        # Elo engine, feature pipeline, predictor
 │   │   ├── routers/         # FastAPI endpoints
-│   │   ├── ml/              # XGBoost training & evaluation
-│   │   └── scheduler.py     # APScheduler cron jobs
+│   │   └── ml/              # XGBoost training & evaluation
 │   ├── alembic/             # DB migrations
 │   └── tests/
 ├── frontend/
