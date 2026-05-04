@@ -171,9 +171,30 @@ def _get_match_sync(match_id: int) -> dict[str, object] | None:
             {"match_id": match_id},
         ).mappings().all()
 
+        odds_rows = session.execute(
+            text(
+                """
+                SELECT bookmaker, team1_decimal, team2_decimal, fetched_at
+                FROM odds
+                WHERE match_id = :match_id
+                ORDER BY bookmaker
+                """
+            ),
+            {"match_id": match_id},
+        ).mappings().all()
+
     result = dict(match_row)
     result["maps"] = map_payloads
     result["predictions"] = [dict(row) for row in pred_rows]
+    result["odds"] = [
+        {
+            "bookmaker": row["bookmaker"],
+            "team1_decimal": float(row["team1_decimal"]),
+            "team2_decimal": float(row["team2_decimal"]),
+            "fetched_at": row["fetched_at"],
+        }
+        for row in odds_rows
+    ]
     return result
 
 
