@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 
 from app.database import SyncSessionLocal
 from app.models import Map, MapVeto, Match, Player, PlayerMapStat, Round, Team
+from app.services.predictor import predict_matchup
 
 logger = logging.getLogger(__name__)
 
@@ -890,6 +891,175 @@ def scrape_recent_matches(pages: int = 3, cancel_check: callable = None) -> int:
 
         logger.info("Scrape complete: %d new matches, %d new logos.", new_count, new_logos)
         return new_count
+
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
+SCHEDULE_URL = f"{BASE_URL}/matches"
+
+
+def scrape_upcoming_matches(cancel_check: callable = None) -> dict:
+    """Scrape upcoming VLR matches: insert match shells, odds, and predictions.
+
+    Returns counts: {"new_matches": int, "odds_rows": int, "predictions": int}.
+    """
+    http = requests.Session()
+    http.headers.update(HEADERS)
+
+    db = SyncSessionLocal()
+    new_matches = 0
+    odds_rows = 0
+    predictions_made = 0
+
+    try:
+        logger.info("Loading existing match IDs...")
+        existing_ids: set[int] = {
+            row[0] for row in db.execute(text("SELECT id FROM matches")).fetchall()
+        }
+        logger.info("Found %d existing matches.", len(existing_ids))
+
+        logger.info("Loading team cache...")
+        team_cache: dict[str, int] = {
+            row[1]: row[0]
+            for row in db.execute(text("SELECT id, name FROM teams")).fetchall()
+        }
+        logger.info("Loaded %d teams.", len(team_cache))
+
+        logger.info("Fetching schedule page %s ...", SCHEDULE_URL)
+        soup = _fetch(http, SCHEDULE_URL)
+        schedule_rows = _parse_schedule_page(soup)
+        logger.info("Parsed %d upcoming match rows.", len(schedule_rows))
+
+        for match in schedule_rows:
+            if cancel_check:
+                cancel_check()
+
+            t1_name = match["team1_name"]
+            t2_name = match["team2_name"]
+
+            if t1_name == "TBD" or t2_name == "TBD":
+                continue
+
+            mid = match["match_id"]
+            if mid in existing_ids:
+                continue
+
+            t1_id = team_cache.get(t1_name)
+            t2_id = team_cache.get(t2_name)
+            if not t1_id or not t2_id:
+                logger.info(
+                    "Skipping match %d: unknown team(s) %s / %s",
+                    mid, t1_name, t2_name,
+                )
+                continue
+
+            # Insert match shell (idempotent)
+            db.execute(
+                text("""
+                    INSERT INTO matches (
+                        id, team1_id, team2_id, event, url,
+                        date, team1_score, team2_score, winner_id
+                    )
+                    VALUES (
+                        :id, :t1, :t2, :event, :url,
+                        NULL, NULL, NULL, NULL
+                    )
+                    ON CONFLICT (id) DO NOTHING
+                """),
+                {
+                    "id": mid,
+                    "t1": t1_id,
+                    "t2": t2_id,
+                    "event": match.get("event"),
+                    "url": match["url"],
+                },
+            )
+            new_matches += 1
+            existing_ids.add(mid)
+
+            # Fetch detail page for odds
+            try:
+                detail_soup = _fetch(http, match["url"])
+            except Exception:
+                logger.exception("Failed to fetch detail page for match %d", mid)
+                time.sleep(0.5)
+                continue
+
+            for odds in _parse_betting_section(detail_soup):
+                db.execute(
+                    text("""
+                        INSERT INTO odds (
+                            match_id, bookmaker, team1_decimal,
+                            team2_decimal, fetched_at
+                        )
+                        VALUES (
+                            :mid, :bk, :t1d, :t2d, NOW()
+                        )
+                        ON CONFLICT (match_id, bookmaker) DO UPDATE SET
+                            team1_decimal = EXCLUDED.team1_decimal,
+                            team2_decimal = EXCLUDED.team2_decimal,
+                            fetched_at = EXCLUDED.fetched_at
+                    """),
+                    {
+                        "mid": mid,
+                        "bk": odds["bookmaker"],
+                        "t1d": odds["team1_decimal"],
+                        "t2d": odds["team2_decimal"],
+                    },
+                )
+                odds_rows += 1
+
+            # Generate prediction (best-effort)
+            try:
+                pred = predict_matchup(
+                    db,
+                    team1_id=t1_id,
+                    team2_id=t2_id,
+                    map_name=None,
+                    match_date=None,
+                )
+                db.execute(
+                    text("""
+                        INSERT INTO predictions (
+                            match_id, team1_id, team2_id,
+                            team1_win_prob, model_version,
+                            predicted_at, correct
+                        )
+                        VALUES (
+                            :mid, :t1, :t2, :prob, :ver, NOW(), NULL
+                        )
+                    """),
+                    {
+                        "mid": mid,
+                        "t1": t1_id,
+                        "t2": t2_id,
+                        "prob": pred["team1_win_prob"],
+                        "ver": pred["model_version"],
+                    },
+                )
+                predictions_made += 1
+            except (FileNotFoundError, LookupError, ValueError):
+                logger.exception(
+                    "predict_matchup failed for match %d (%s vs %s); skipping",
+                    mid, t1_name, t2_name,
+                )
+
+            time.sleep(0.5)
+
+        db.commit()
+        logger.info(
+            "Upcoming scrape complete: %d new matches, %d odds rows, %d predictions.",
+            new_matches, odds_rows, predictions_made,
+        )
+        return {
+            "new_matches": new_matches,
+            "odds_rows": odds_rows,
+            "predictions": predictions_made,
+        }
 
     except Exception:
         db.rollback()
