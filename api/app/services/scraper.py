@@ -313,6 +313,36 @@ def _parse_betting_section(soup: BeautifulSoup) -> list[dict]:
     return out
 
 
+def _parse_schedule_page(soup: BeautifulSoup) -> list[dict]:
+    """Parse upcoming matches from the VLR /matches schedule page.
+
+    Returns list of {"match_id": int, "url": str, "team1_name": str,
+    "team2_name": str, "date": datetime | None, "event": str | None}.
+    """
+    out: list[dict] = []
+    for a in soup.select("a.wf-module-item.match-item[href]"):
+        href = a.get("href") or ""
+        m = re.match(r"/(\d+)/", href)
+        if not m:
+            continue
+        team_els = a.select(".match-item-vs-team-name .text-of")
+        if len(team_els) < 2:
+            continue
+        team1 = team_els[0].get_text(strip=True)
+        team2 = team_els[1].get_text(strip=True)
+        if not team1 or not team2:
+            continue
+        out.append({
+            "match_id": int(m.group(1)),
+            "url": f"{BASE_URL}{href}",
+            "team1_name": team1,
+            "team2_name": team2,
+            "date": None,
+            "event": _get_direct_text(a.select_one(".match-item-event")),
+        })
+    return out
+
+
 def _parse_match_format(soup: BeautifulSoup) -> int | None:
     """Return the match format (1/3/5) parsed from the VLR BoN hint.
 
