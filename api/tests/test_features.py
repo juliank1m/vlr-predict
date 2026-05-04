@@ -69,7 +69,7 @@ def medians(db):
 
 class TestFeatureNames:
     def test_count(self):
-        assert len(FEATURE_NAMES) == 60
+        assert len(FEATURE_NAMES) == 87
 
     def test_no_duplicates(self):
         assert len(FEATURE_NAMES) == len(set(FEATURE_NAMES))

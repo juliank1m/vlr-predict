@@ -128,12 +128,13 @@ def test_matches_list_endpoint_uses_router_payload(client, monkeypatch):
     monkeypatch.setattr(
         matches,
         "_list_matches_sync",
-        lambda page, page_size, resolved_only: {
+        lambda page, page_size, resolved_only, search: {
             "items": [{"id": 10, "team1_name": "A", "team2_name": "B"}],
             "page": page,
             "page_size": page_size,
             "total": 1,
             "resolved_only": resolved_only,
+            "search": search,
         },
     )
 
