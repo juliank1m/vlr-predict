@@ -267,6 +267,52 @@ def _parse_results_page(soup: BeautifulSoup) -> list[dict]:
     return matches
 
 
+def _parse_betting_section(soup: BeautifulSoup) -> list[dict]:
+    """Extract bookmaker odds from a VLR match detail page.
+
+    Returns a list of {"bookmaker", "team1_decimal", "team2_decimal"}.
+    Empty list when the page has no betting widget.
+    """
+    out: list[dict] = []
+    for row in soup.select("a.match-bet-item"):
+        # Bookmaker is identified by the image class (e.g. "mod-ggbet")
+        # or the image filename (/img/pd/ggbet.png).
+        img = row.select_one("img")
+        bookmaker: str | None = None
+        if img is not None:
+            for cls in img.get("class", []) or []:
+                if cls.startswith("mod-") and len(cls) > 4:
+                    bookmaker = cls[4:]
+                    break
+            if not bookmaker:
+                src = img.get("src") or ""
+                m = re.search(r"/([^/]+)\.\w+$", src)
+                if m:
+                    bookmaker = m.group(1)
+        if not bookmaker:
+            continue
+
+        odds_els = row.select(".match-bet-item-odds")
+        if len(odds_els) < 2:
+            continue
+        try:
+            t1 = float(odds_els[0].get_text(strip=True))
+            t2 = float(odds_els[1].get_text(strip=True))
+        except ValueError:
+            continue
+        # Skip placeholder/degenerate odds (VLR sometimes shows 1.00 as a
+        # filler before live odds are available).
+        if t1 <= 1.0 or t2 <= 1.0:
+            continue
+
+        out.append({
+            "bookmaker": bookmaker,
+            "team1_decimal": t1,
+            "team2_decimal": t2,
+        })
+    return out
+
+
 def _extract_games(soup: BeautifulSoup, match: dict) -> list[dict]:
     """Extract game/map rows from a match detail page."""
     nav_lookup: dict[str, int] = {}
