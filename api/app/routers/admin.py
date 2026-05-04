@@ -125,12 +125,36 @@ def _run_in_background(job_id: str, func, **kwargs) -> dict:
 
 
 def _scrape_task(pages: int = 5) -> dict:
-    from app.services.scraper import scrape_recent_matches
+    from app.services.scraper import scrape_recent_matches, scrape_upcoming_matches
 
-    _job_log("scrape", "Starting scrape with %d pages...", pages)
-    count = scrape_recent_matches(pages=pages, cancel_check=lambda: check_cancelled("scrape"))
-    _job_log("scrape", "Scrape finished: %d new matches", count)
-    return {"new_matches": count}
+    _job_log("scrape", "Scraping recent results, pages=%d...", pages)
+    new_matches = scrape_recent_matches(
+        pages=pages, cancel_check=lambda: check_cancelled("scrape")
+    )
+    _job_log("scrape", "Recent results: %d new matches", new_matches)
+
+    _job_log("scrape", "Scraping upcoming matches...")
+    upcoming = scrape_upcoming_matches(cancel_check=lambda: check_cancelled("scrape"))
+    _job_log(
+        "scrape",
+        "Upcoming: %d new, %d odds rows, %d predictions",
+        upcoming["new_matches"],
+        upcoming["odds_rows"],
+        upcoming["predictions"],
+    )
+
+    return {
+        "new_matches": new_matches,
+        "new_upcoming_matches": upcoming["new_matches"],
+        "odds_rows": upcoming["odds_rows"],
+        "predictions": upcoming["predictions"],
+    }
+
+
+def _odds_task() -> dict:
+    from app.services.scraper import refresh_odds_for_upcoming
+
+    return refresh_odds_for_upcoming(cancel_check=lambda: check_cancelled("odds"))
 
 
 def _job_log(job_id: str, msg: str, *args):
@@ -199,6 +223,12 @@ async def trigger_scrape(
 ):
     """Scrape recent VLR results."""
     return _run_in_background("scrape", _scrape_task, pages=pages)
+
+
+@router.post("/odds")
+async def trigger_odds(_user: str = Depends(_verify_admin)):
+    """Refresh bookmaker odds for upcoming matches."""
+    return _run_in_background("odds", _odds_task)
 
 
 @router.post("/elo")
