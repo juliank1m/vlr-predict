@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Lock, Loader2, CheckCircle, XCircle, Database, Brain, RefreshCw, Terminal, ListChecks, Square, ThumbsUp, ThumbsDown } from "lucide-react";
+import { Lock, Loader2, CheckCircle, XCircle, Database, Brain, RefreshCw, Terminal, ListChecks, Square, ThumbsUp, ThumbsDown, DollarSign } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -31,6 +31,7 @@ export default function AdminPage() {
   const [vetoJob, setVetoJob] = useState<JobState>(initialJob);
   const [roundsJob, setRoundsJob] = useState<JobState>(initialJob);
   const [tuneJob, setTuneJob] = useState<JobState>(initialJob);
+  const [oddsJob, setOddsJob] = useState<JobState>(initialJob);
   const [scrapePages, setScrapePages] = useState(5);
 
   const [logs, setLogs] = useState<Record<string, string[]>>({});
@@ -46,7 +47,7 @@ export default function AdminPage() {
   // Poll logs only for the active/visible job
   useEffect(() => {
     if (!activeLog || !authenticated) return;
-    const jobState = { scrape: scrapeJob, elo: eloJob, retrain: retrainJob, backfill_veto: vetoJob, backfill_rounds: roundsJob, tune: tuneJob }[activeLog];
+    const jobState = { scrape: scrapeJob, elo: eloJob, retrain: retrainJob, backfill_veto: vetoJob, backfill_rounds: roundsJob, tune: tuneJob, odds: oddsJob }[activeLog];
     if (!jobState || jobState.status !== "running") return;
 
     const poll = async () => {
@@ -76,7 +77,7 @@ export default function AdminPage() {
     poll(); // fetch immediately
     const interval = setInterval(poll, 2000);
     return () => clearInterval(interval);
-  }, [activeLog, scrapeJob.status, eloJob.status, retrainJob.status, vetoJob.status, roundsJob.status, tuneJob.status, authenticated, authHeader]);
+  }, [activeLog, scrapeJob.status, eloJob.status, retrainJob.status, vetoJob.status, roundsJob.status, tuneJob.status, oddsJob.status, authenticated, authHeader]);
 
   // Auto-scroll terminal
   useEffect(() => {
@@ -100,6 +101,7 @@ export default function AdminPage() {
         if (data.backfill_veto) setVetoJob(data.backfill_veto);
         if (data.backfill_rounds) setRoundsJob(data.backfill_rounds);
         if (data.tune) setTuneJob(data.tune);
+        if (data.odds) setOddsJob(data.odds);
       } else {
         setAuthError(true);
       }
@@ -157,6 +159,7 @@ export default function AdminPage() {
         if (data.backfill_veto) setVetoJob(data.backfill_veto);
         if (data.backfill_rounds) setRoundsJob(data.backfill_rounds);
         if (data.tune) setTuneJob(data.tune);
+        if (data.odds) setOddsJob(data.odds);
         const anyRunning = Object.values(data).some(
           (j: unknown) => (j as JobState).status === "running"
         );
@@ -285,6 +288,14 @@ export default function AdminPage() {
           </Button>
         </div>
       ) : undefined,
+    },
+    {
+      id: "odds",
+      label: "Refresh Odds",
+      description: "Fetch bookmaker odds for upcoming matches",
+      icon: DollarSign,
+      state: oddsJob,
+      action: () => triggerJob("odds", "odds", setOddsJob),
     },
     {
       id: "backfill_veto",
