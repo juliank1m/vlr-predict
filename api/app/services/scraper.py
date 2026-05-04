@@ -912,6 +912,85 @@ def scrape_recent_matches(pages: int = 3, cancel_check: callable = None) -> int:
 SCHEDULE_URL = f"{BASE_URL}/matches"
 
 
+def refresh_odds_for_upcoming(cancel_check: callable = None) -> dict:
+    """Re-fetch detail pages for all upcoming matches and upsert their odds.
+
+    Does NOT insert new matches or predictions — odds rows only.
+    Returns ``{"matches_refreshed": int}`` — number of matches whose detail
+    page successfully fetched (regardless of whether odds were present).
+    """
+    http = requests.Session()
+    http.headers.update(HEADERS)
+
+    db = SyncSessionLocal()
+    matches_refreshed = 0
+
+    try:
+        rows = db.execute(text("""
+            SELECT id, url
+            FROM matches
+            WHERE winner_id IS NULL
+              AND url IS NOT NULL
+              AND (date IS NULL OR date >= NOW())
+            ORDER BY date NULLS LAST
+        """)).fetchall()
+
+        logger.info("Refreshing odds for %d upcoming matches.", len(rows))
+
+        for row in rows:
+            if cancel_check:
+                cancel_check()
+
+            mid, url = row.id, row.url
+            logger.info("Refreshing odds for match %d (%s)", mid, url)
+
+            try:
+                detail_soup = _fetch(http, url)
+            except requests.RequestException as exc:
+                logger.warning(
+                    "Failed to fetch detail page for match %d: %s", mid, exc,
+                )
+                continue
+
+            for odds in _parse_betting_section(detail_soup):
+                db.execute(
+                    text("""
+                        INSERT INTO odds (
+                            match_id, bookmaker, team1_decimal,
+                            team2_decimal, fetched_at
+                        )
+                        VALUES (
+                            :mid, :bk, :t1d, :t2d, NOW()
+                        )
+                        ON CONFLICT (match_id, bookmaker) DO UPDATE SET
+                            team1_decimal = EXCLUDED.team1_decimal,
+                            team2_decimal = EXCLUDED.team2_decimal,
+                            fetched_at = EXCLUDED.fetched_at
+                    """),
+                    {
+                        "mid": mid,
+                        "bk": odds["bookmaker"],
+                        "t1d": odds["team1_decimal"],
+                        "t2d": odds["team2_decimal"],
+                    },
+                )
+
+            matches_refreshed += 1
+            time.sleep(0.5)
+
+        db.commit()
+        logger.info(
+            "Odds refresh complete: %d matches refreshed.", matches_refreshed,
+        )
+        return {"matches_refreshed": matches_refreshed}
+
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
+
+
 def scrape_upcoming_matches(cancel_check: callable = None) -> dict:
     """Scrape upcoming VLR matches: insert match shells, odds, and predictions.
 
