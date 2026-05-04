@@ -957,6 +957,8 @@ def scrape_upcoming_matches(cancel_check: callable = None) -> dict:
                 )
                 continue
 
+            logger.info("Scraping upcoming match %d: %s vs %s", mid, t1_name, t2_name)
+
             # Insert match shell (idempotent)
             db.execute(
                 text("""
@@ -1022,15 +1024,16 @@ def scrape_upcoming_matches(cancel_check: callable = None) -> dict:
                     map_name=None,
                     match_date=None,
                 )
-                db.execute(
+                result = db.execute(
                     text("""
                         INSERT INTO predictions (
                             match_id, team1_id, team2_id,
                             team1_win_prob, model_version,
                             predicted_at, correct
                         )
-                        VALUES (
-                            :mid, :t1, :t2, :prob, :ver, NOW(), NULL
+                        SELECT :mid, :t1, :t2, :prob, :ver, NOW(), NULL
+                        WHERE NOT EXISTS (
+                            SELECT 1 FROM predictions WHERE match_id = :mid
                         )
                     """),
                     {
@@ -1041,12 +1044,10 @@ def scrape_upcoming_matches(cancel_check: callable = None) -> dict:
                         "ver": pred["model_version"],
                     },
                 )
-                predictions_made += 1
-            except (FileNotFoundError, LookupError, ValueError):
-                logger.exception(
-                    "predict_matchup failed for match %d (%s vs %s); skipping",
-                    mid, t1_name, t2_name,
-                )
+                if result.rowcount:
+                    predictions_made += 1
+            except Exception:
+                logger.exception("Skipping prediction for match %s", mid)
 
             time.sleep(0.5)
 

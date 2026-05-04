@@ -59,7 +59,7 @@ def seeded_schedule_state():
         for r in rows
         if r["team1_name"] != "TBD" and r["team2_name"] != "TBD"
     ][:2]
-    assert valid_pairs, "fixture should have at least one non-TBD pair"
+    assert len(valid_pairs) == 2, "fixture must contain at least 2 non-TBD pairs"
 
     match_ids = [mid for (mid, _, _) in valid_pairs]
     names = {n for (_, t1, t2) in valid_pairs for n in (t1, t2)}
@@ -138,9 +138,10 @@ def test_scrape_upcoming_inserts_match_odds_and_prediction(seeded_schedule_state
     ):
         result = scrape_upcoming_matches()
 
-    assert result["new_matches"] >= len(seeded_pairs)
-    assert result["odds_rows"] >= len(seeded_pairs)
-    assert result["predictions"] >= len(seeded_pairs)
+    odds_per_match = 4
+    assert result["new_matches"] == len(seeded_pairs)
+    assert result["odds_rows"] == len(seeded_pairs) * odds_per_match
+    assert result["predictions"] == len(seeded_pairs)
 
     with SyncSessionLocal() as db:
         match_count = db.execute(
@@ -160,8 +161,7 @@ def test_scrape_upcoming_inserts_match_odds_and_prediction(seeded_schedule_state
         ).scalar()
 
     assert match_count == len(seeded_pairs)
-    # Each match has 4 odds rows in the fixture
-    assert odds_count >= len(seeded_pairs)
+    assert odds_count == len(seeded_pairs) * odds_per_match
     assert pred_count == len(seeded_pairs)
 
 
