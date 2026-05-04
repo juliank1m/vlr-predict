@@ -37,26 +37,43 @@ class PredictionRequest(BaseModel):
         return self
 
 
-def _serialize_prediction_rows(rows: list[object]) -> list[dict[str, object]]:
-    return [
-        {
-            "id": int(row["id"]),
-            "match_id": row["match_id"],
-            "map_id": row["map_id"],
-            "match_date": row["match_date"],
-            "team1_id": int(row["team1_id"]),
-            "team1_name": row["team1_name"],
-            "team2_id": int(row["team2_id"]),
-            "team2_name": row["team2_name"],
-            "map_name": row["map_name"],
-            "team1_win_prob": float(row["team1_win_prob"]),
-            "team2_win_prob": 1.0 - float(row["team1_win_prob"]),
-            "model_version": row["model_version"],
-            "predicted_at": row["predicted_at"],
-            "correct": row["correct"],
-        }
-        for row in rows
-    ]
+def _serialize_history_row(row: object) -> dict[str, object]:
+    return {
+        "id": int(row["id"]),
+        "match_id": row["match_id"],
+        "map_id": row["map_id"],
+        "match_date": row["match_date"],
+        "team1_id": int(row["team1_id"]),
+        "team1_name": row["team1_name"],
+        "team2_id": int(row["team2_id"]),
+        "team2_name": row["team2_name"],
+        "map_name": row["map_name"],
+        "team1_win_prob": float(row["team1_win_prob"]),
+        "team2_win_prob": 1.0 - float(row["team1_win_prob"]),
+        "model_version": row["model_version"],
+        "predicted_at": row["predicted_at"],
+        "correct": row["correct"],
+    }
+
+
+def _serialize_upcoming_row(row: object) -> dict[str, object]:
+    base = _serialize_history_row(row)
+    base["team1_implied"] = (
+        float(row["team1_implied"]) if row["team1_implied"] is not None else None
+    )
+    base["team2_implied"] = (
+        float(row["team2_implied"]) if row["team2_implied"] is not None else None
+    )
+    base["team1_ev"] = (
+        float(row["team1_ev"]) if row["team1_ev"] is not None else None
+    )
+    base["team2_ev"] = (
+        float(row["team2_ev"]) if row["team2_ev"] is not None else None
+    )
+    base["book_count"] = (
+        int(row["book_count"]) if row["book_count"] is not None else 0
+    )
+    return base
 
 
 def _get_upcoming_predictions_sync(limit: int) -> dict[str, object]:
@@ -77,11 +94,31 @@ def _get_upcoming_predictions_sync(limit: int) -> dict[str, object]:
                     p.team1_win_prob,
                     p.model_version,
                     p.predicted_at,
-                    p.correct
+                    p.correct,
+                    o.team1_implied,
+                    o.team2_implied,
+                    o.book_count,
+                    CASE WHEN o.team1_implied > 0
+                         THEN (p.team1_win_prob / o.team1_implied) - 1
+                    END AS team1_ev,
+                    CASE WHEN o.team2_implied > 0
+                         THEN ((1.0 - p.team1_win_prob) / o.team2_implied) - 1
+                    END AS team2_ev
                 FROM predictions p
                 JOIN teams t1 ON t1.id = p.team1_id
                 JOIN teams t2 ON t2.id = p.team2_id
                 LEFT JOIN matches mt ON mt.id = p.match_id
+                LEFT JOIN LATERAL (
+                    SELECT
+                        percentile_cont(0.5) WITHIN GROUP (
+                            ORDER BY 1.0 / team1_decimal
+                        )::float AS team1_implied,
+                        percentile_cont(0.5) WITHIN GROUP (
+                            ORDER BY 1.0 / team2_decimal
+                        )::float AS team2_implied,
+                        COUNT(*) AS book_count
+                    FROM odds WHERE match_id = p.match_id
+                ) o ON TRUE
                 WHERE p.correct IS NULL
                 ORDER BY mt.date ASC NULLS LAST, p.predicted_at DESC
                 LIMIT :limit
@@ -89,7 +126,10 @@ def _get_upcoming_predictions_sync(limit: int) -> dict[str, object]:
             ),
             {"limit": limit},
         ).mappings().all()
-    return {"items": _serialize_prediction_rows(rows), "count": len(rows)}
+    return {
+        "items": [_serialize_upcoming_row(r) for r in rows],
+        "count": len(rows),
+    }
 
 
 def _get_prediction_history_sync(limit: int) -> dict[str, object]:
@@ -133,7 +173,7 @@ def _get_prediction_history_sync(limit: int) -> dict[str, object]:
         ).scalar()
 
     return {
-        "items": _serialize_prediction_rows(rows),
+        "items": [_serialize_history_row(r) for r in rows],
         "summary": {
             "count": len(rows),
             "accuracy": float(accuracy) if accuracy is not None else None,
