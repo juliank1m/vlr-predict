@@ -582,6 +582,20 @@ def _insert_match_data(
             first_deaths=_to_int(p.get("first_deaths")),
         ))
 
+    # Backfill predictions.correct for any pre-existing prediction rows tied
+    # to this match so the home page transitions it from upcoming to history.
+    # Only fires when the match has a determined winner (NULL on ties/aborts
+    # leaves correct = NULL, which keeps the prediction in pending state).
+    if winner_id is not None:
+        session.execute(
+            text("""
+                UPDATE predictions
+                SET correct = ((team1_win_prob >= 0.5) = (:winner_id = team1_id))
+                WHERE match_id = :match_id AND correct IS NULL
+            """),
+            {"winner_id": winner_id, "match_id": match["match_id"]},
+        )
+
 
 def backfill_veto_data(batch_size: int = 200, cancel_check: callable = None) -> int:
     """Re-scrape ALL remaining matches to extract veto data. Returns count updated."""
