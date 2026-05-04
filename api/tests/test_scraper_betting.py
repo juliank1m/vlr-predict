@@ -2,7 +2,7 @@ from pathlib import Path
 
 from bs4 import BeautifulSoup
 
-from app.services.scraper import _parse_betting_section
+from app.services.scraper import _parse_betting_section, _parse_match_format
 
 FIXTURE = Path(__file__).parent / "fixtures" / "vlr_upcoming_match.html"
 
@@ -29,6 +29,17 @@ def test_parse_betting_section_keeps_low_decimal_real_lines():
     thunderpick = next((r for r in rows if r["bookmaker"] == "thunderpick"), None)
     assert thunderpick is not None
     assert thunderpick["team1_decimal"] == 1.01
+
+
+def test_parse_match_format_detects_known_format():
+    soup = BeautifulSoup(FIXTURE.read_text(), "html.parser")
+    fmt = _parse_match_format(soup)
+    assert fmt in {1, 3, 5}
+
+
+def test_parse_match_format_returns_none_when_missing():
+    soup = BeautifulSoup("<html><body></body></html>", "html.parser")
+    assert _parse_match_format(soup) is None
 
 
 def test_parse_betting_section_skips_malformed_odds():

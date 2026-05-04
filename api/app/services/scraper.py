@@ -313,6 +313,20 @@ def _parse_betting_section(soup: BeautifulSoup) -> list[dict]:
     return out
 
 
+def _parse_match_format(soup: BeautifulSoup) -> int | None:
+    """Return the match format (1/3/5) parsed from the VLR BoN hint.
+
+    Looks for any ``.match-header-vs-note`` element containing ``BoN``;
+    returns ``None`` when no such hint is present.
+    """
+    for note in soup.select(".match-header-vs-note"):
+        txt = note.get_text(strip=True).lower()
+        m = re.search(r"bo(\d)", txt)
+        if m:
+            return int(m.group(1))
+    return None
+
+
 def _extract_games(soup: BeautifulSoup, match: dict) -> list[dict]:
     """Extract game/map rows from a match detail page."""
     nav_lookup: dict[str, int] = {}
