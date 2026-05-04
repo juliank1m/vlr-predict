@@ -582,10 +582,6 @@ def _insert_match_data(
             first_deaths=_to_int(p.get("first_deaths")),
         ))
 
-    # Backfill predictions.correct for any pre-existing prediction rows tied
-    # to this match so the home page transitions it from upcoming to history.
-    # Only fires when the match has a determined winner (NULL on ties/aborts
-    # leaves correct = NULL, which keeps the prediction in pending state).
     if winner_id is not None:
         session.execute(
             text("""
