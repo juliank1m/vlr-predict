@@ -122,6 +122,109 @@ export default function MatchDetailPage() {
         );
       })()}
 
+      {match.odds && match.odds.length > 0 && (() => {
+        const seriesPred = match.predictions?.find((p) => p.map_name == null) ?? match.predictions?.[0];
+        const team1Prob = seriesPred?.team1_win_prob ?? null;
+        const BOOKMAKER_LABELS: Record<string, string> = {
+          ggbet: "GGBet",
+          thunderpick: "Thunderpick",
+          rainbet: "Rainbet",
+          shuffle: "Shuffle",
+          winz: "Winz",
+        };
+        const bookmakerLabel = (name: string) =>
+          BOOKMAKER_LABELS[name.toLowerCase()] ??
+          (name.length > 0 ? name[0].toUpperCase() + name.slice(1) : name);
+        const formatRelative = (iso: string) => {
+          if (!iso) return "—";
+          const ts = new Date(iso).getTime();
+          if (Number.isNaN(ts)) return "—";
+          const diffSec = Math.floor((Date.now() - ts) / 1000);
+          if (diffSec < 0) return "just now";
+          if (diffSec < 60) return `${diffSec}s ago`;
+          const diffMin = Math.floor(diffSec / 60);
+          if (diffMin < 60) return `${diffMin} min ago`;
+          const diffHr = Math.floor(diffMin / 60);
+          if (diffHr < 24) return `${diffHr}h ago`;
+          const diffDay = Math.floor(diffHr / 24);
+          if (diffDay < 30) return `${diffDay}d ago`;
+          return new Date(iso).toLocaleDateString();
+        };
+        const formatEv = (ev: number | null) => {
+          if (ev == null || !Number.isFinite(ev)) return "—";
+          const pct = ev * 100;
+          const sign = pct >= 0 ? "+" : "";
+          return `${sign}${pct.toFixed(1)}%`;
+        };
+        return (
+          <Card>
+            <CardHeader className="py-3">
+              <CardTitle className="text-sm tracking-widest">Betting</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[160px]">Bookmaker</TableHead>
+                    <TableHead className="text-center">{match.team1_name}</TableHead>
+                    <TableHead className="text-center">{match.team2_name}</TableHead>
+                    <TableHead className="text-center">{match.team1_name} Implied</TableHead>
+                    <TableHead className="text-center">{match.team2_name} Implied</TableHead>
+                    <TableHead className="text-center">{match.team1_name} EV</TableHead>
+                    <TableHead className="text-center">{match.team2_name} EV</TableHead>
+                    <TableHead className="text-right">Updated</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {match.odds.map((row) => {
+                    const team1Implied = row.team1_decimal > 0 ? 1 / row.team1_decimal : null;
+                    const team2Implied = row.team2_decimal > 0 ? 1 / row.team2_decimal : null;
+                    const team1Ev =
+                      team1Prob != null && team1Implied != null && team1Implied > 0
+                        ? team1Prob / team1Implied - 1
+                        : null;
+                    const team2Ev =
+                      team1Prob != null && team2Implied != null && team2Implied > 0
+                        ? (1 - team1Prob) / team2Implied - 1
+                        : null;
+                    const evClass = (ev: number | null) =>
+                      ev != null && ev > 0 ? "text-emerald-500" : "text-muted-foreground";
+                    return (
+                      <TableRow key={row.bookmaker}>
+                        <TableCell className="font-medium">
+                          {bookmakerLabel(row.bookmaker)}
+                        </TableCell>
+                        <TableCell className="text-center font-mono text-xs">
+                          {row.team1_decimal.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-center font-mono text-xs">
+                          {row.team2_decimal.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="text-center font-mono text-xs">
+                          {team1Implied != null ? `${(team1Implied * 100).toFixed(1)}%` : "—"}
+                        </TableCell>
+                        <TableCell className="text-center font-mono text-xs">
+                          {team2Implied != null ? `${(team2Implied * 100).toFixed(1)}%` : "—"}
+                        </TableCell>
+                        <TableCell className={`text-center font-mono text-xs ${evClass(team1Ev)}`}>
+                          {formatEv(team1Ev)}
+                        </TableCell>
+                        <TableCell className={`text-center font-mono text-xs ${evClass(team2Ev)}`}>
+                          {formatEv(team2Ev)}
+                        </TableCell>
+                        <TableCell className="text-right text-xs text-muted-foreground">
+                          {formatRelative(row.fetched_at)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
       {match.maps.length > 0 && (
         <Tabs defaultValue={String(match.maps[0].id)} onValueChange={setActiveTab}>
           <TabsList>

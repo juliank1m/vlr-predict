@@ -113,9 +113,17 @@ export interface MatchPrediction {
   correct: boolean | null;
 }
 
+export interface MatchOdds {
+  bookmaker: string;
+  team1_decimal: number;
+  team2_decimal: number;
+  fetched_at: string;
+}
+
 export interface MatchDetail extends MatchSummary {
   maps: MapDetail[];
   predictions: MatchPrediction[];
+  odds: MatchOdds[];
 }
 
 export interface PredictionItem {
