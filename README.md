@@ -7,7 +7,8 @@ Pre-match win probability predictions for professional Valorant, powered by hist
 ## Stack
 
 - **Backend:** FastAPI + SQLAlchemy + PostgreSQL
-- **ML:** XGBoost with 60 engineered features (Elo, rolling stats, map-specific, H2H, roster stability)
+- **ML:** XGBoost with 87 engineered features (Elo, rolling stats, map-specific, H2H, roster stability, player + agent composition)
+- **Odds:** scraped from VLR.gg match pages (5 bookmakers, decimal moneyline) for market-implied prob + EV display
 - **Frontend:** Next.js 16 + TypeScript + Tailwind CSS + shadcn/ui + Recharts
 - **Deployment:** Railway (API + frontend + PostgreSQL)
 
@@ -77,22 +78,22 @@ Interactive docs: [api.valpredict.juliankim.dev/docs](https://api.valpredict.jul
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/predictions/upcoming` | Predictions for upcoming matches |
+| `GET` | `/api/predictions/upcoming` | Predictions for upcoming matches, with median market-implied probability and EV per side |
 | `POST` | `/api/predict` | Ad-hoc prediction: `{team1_id, team2_id}` |
 | `GET` | `/api/predictions/history` | Past predictions with accuracy |
 | `GET` | `/api/teams` | List teams (searchable) |
 | `GET` | `/api/teams/{id}` | Team profile with Elo history and map pool |
 | `GET` | `/api/teams/{id}/players` | Roster info |
 | `GET` | `/api/matches` | Paginated match results |
-| `GET` | `/api/matches/{id}` | Match detail with map scores, player stats, and predictions |
+| `GET` | `/api/matches/{id}` | Match detail with map scores, player stats, predictions, and per-bookmaker odds |
 | `GET` | `/api/model/accuracy` | Rolling accuracy metrics and CV folds |
 | `GET` | `/api/model/features` | Feature importance rankings |
 | `GET` | `/api/health` | Health check |
 
 ## Dashboard Pages
 
-- **/** — Upcoming predictions (sortable by date/confidence) + quick prediction widget + recent matches
+- **/** — Upcoming predictions (sortable by date/confidence) with market-implied prob + EV per side, quick prediction widget, recent matches
 - **/teams/[id]** — Elo chart, map pool win rates, recent results, roster
 - **/compare** — Head-to-head comparison with side-by-side stats, map pool, H2H record, and model prediction
 - **/model** — Test metrics, calibration curve, rolling accuracy/log-loss charts, feature importance, prediction log
-- **/matches/[id]** — Map-by-map breakdown with player stat tables and pre-match prediction
+- **/matches/[id]** — Map-by-map breakdown with player stat tables, pre-match prediction, and per-bookmaker betting table (decimal odds, implied %, EV)
