@@ -209,7 +209,7 @@ export interface ModelFeatures {
 export async function listTeams(search?: string, limit = 50) {
   const params = new URLSearchParams({ limit: String(limit) });
   if (search) params.set("search", search);
-  return fetchAPI<{ items: Team[]; count: number }>(`/api/teams?${params}`);
+  return fetchAPI<{ items: Team[]; count: number }>(`/api/teams/?${params}`);
 }
 
 export async function getTeam(id: number) {
@@ -226,7 +226,7 @@ export async function listMatches(page = 1, pageSize = 25, search?: string) {
   const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
   if (search) params.set("search", search);
   return fetchAPI<{ items: MatchSummary[]; page: number; page_size: number; total: number }>(
-    `/api/matches?${params}`
+    `/api/matches/?${params}`
   );
 }
 
