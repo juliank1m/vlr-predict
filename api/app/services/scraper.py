@@ -506,6 +506,30 @@ def _get_or_create_player(session: Session, pid: int | None, name: str, cache: d
     return pid
 
 
+def _upsert_odds(session: Session, match_id: int, rows: list[dict]) -> int:
+    """Upsert bookmaker odds for a match. Returns the number of rows written."""
+    count = 0
+    for row in rows:
+        session.execute(
+            text("""
+                INSERT INTO odds (match_id, bookmaker, team1_decimal, team2_decimal, fetched_at)
+                VALUES (:match_id, :bookmaker, :t1, :t2, NOW())
+                ON CONFLICT (match_id, bookmaker) DO UPDATE SET
+                    team1_decimal = EXCLUDED.team1_decimal,
+                    team2_decimal = EXCLUDED.team2_decimal,
+                    fetched_at    = EXCLUDED.fetched_at
+            """),
+            {
+                "match_id": match_id,
+                "bookmaker": row["bookmaker"],
+                "t1": row["team1_decimal"],
+                "t2": row["team2_decimal"],
+            },
+        )
+        count += 1
+    return count
+
+
 def _insert_match_data(
     session: Session,
     match: dict,
@@ -952,28 +976,7 @@ def refresh_odds_for_upcoming(cancel_check: callable = None) -> dict:
                 )
                 continue
 
-            for odds in _parse_betting_section(detail_soup):
-                db.execute(
-                    text("""
-                        INSERT INTO odds (
-                            match_id, bookmaker, team1_decimal,
-                            team2_decimal, fetched_at
-                        )
-                        VALUES (
-                            :mid, :bk, :t1d, :t2d, NOW()
-                        )
-                        ON CONFLICT (match_id, bookmaker) DO UPDATE SET
-                            team1_decimal = EXCLUDED.team1_decimal,
-                            team2_decimal = EXCLUDED.team2_decimal,
-                            fetched_at = EXCLUDED.fetched_at
-                    """),
-                    {
-                        "mid": mid,
-                        "bk": odds["bookmaker"],
-                        "t1d": odds["team1_decimal"],
-                        "t2d": odds["team2_decimal"],
-                    },
-                )
+            _upsert_odds(db, mid, _parse_betting_section(detail_soup))
 
             matches_refreshed += 1
             time.sleep(0.5)
@@ -1080,29 +1083,7 @@ def scrape_upcoming_matches(cancel_check: callable = None) -> dict:
                 time.sleep(0.5)
                 continue
 
-            for odds in _parse_betting_section(detail_soup):
-                db.execute(
-                    text("""
-                        INSERT INTO odds (
-                            match_id, bookmaker, team1_decimal,
-                            team2_decimal, fetched_at
-                        )
-                        VALUES (
-                            :mid, :bk, :t1d, :t2d, NOW()
-                        )
-                        ON CONFLICT (match_id, bookmaker) DO UPDATE SET
-                            team1_decimal = EXCLUDED.team1_decimal,
-                            team2_decimal = EXCLUDED.team2_decimal,
-                            fetched_at = EXCLUDED.fetched_at
-                    """),
-                    {
-                        "mid": mid,
-                        "bk": odds["bookmaker"],
-                        "t1d": odds["team1_decimal"],
-                        "t2d": odds["team2_decimal"],
-                    },
-                )
-                odds_rows += 1
+            odds_rows += _upsert_odds(db, mid, _parse_betting_section(detail_soup))
 
             # Generate prediction (best-effort)
             try:

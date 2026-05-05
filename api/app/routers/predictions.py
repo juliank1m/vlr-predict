@@ -56,23 +56,23 @@ def _serialize_history_row(row: object) -> dict[str, object]:
     }
 
 
+def _opt_float(row, key: str) -> float | None:
+    v = row[key]
+    return float(v) if v is not None else None
+
+
+def _opt_int(row, key: str, default: int = 0) -> int:
+    v = row[key]
+    return int(v) if v is not None else default
+
+
 def _serialize_upcoming_row(row: object) -> dict[str, object]:
     base = _serialize_history_row(row)
-    base["team1_implied"] = (
-        float(row["team1_implied"]) if row["team1_implied"] is not None else None
-    )
-    base["team2_implied"] = (
-        float(row["team2_implied"]) if row["team2_implied"] is not None else None
-    )
-    base["team1_ev"] = (
-        float(row["team1_ev"]) if row["team1_ev"] is not None else None
-    )
-    base["team2_ev"] = (
-        float(row["team2_ev"]) if row["team2_ev"] is not None else None
-    )
-    base["book_count"] = (
-        int(row["book_count"]) if row["book_count"] is not None else 0
-    )
+    base["team1_implied"] = _opt_float(row, "team1_implied")
+    base["team2_implied"] = _opt_float(row, "team2_implied")
+    base["team1_ev"] = _opt_float(row, "team1_ev")
+    base["team2_ev"] = _opt_float(row, "team2_ev")
+    base["book_count"] = _opt_int(row, "book_count", default=0)
     return base
 
 

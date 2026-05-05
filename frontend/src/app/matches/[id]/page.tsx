@@ -152,9 +152,9 @@ export default function MatchDetailPage() {
         };
         const formatEv = (ev: number | null) => {
           if (ev == null || !Number.isFinite(ev)) return "—";
-          const pct = ev * 100;
+          const pct = Math.round(ev * 100);
           const sign = pct >= 0 ? "+" : "";
-          return `${sign}${pct.toFixed(1)}%`;
+          return `${sign}${pct}%`;
         };
         return (
           <Card>
