@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Lock, Loader2, CheckCircle, XCircle, Database, Brain, RefreshCw, Terminal, ListChecks, Square, ThumbsUp, ThumbsDown, DollarSign } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/+$/, "");
 
 type JobStatus = "idle" | "running" | "completed" | "failed";
 
