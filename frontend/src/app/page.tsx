@@ -178,6 +178,25 @@ export default function HomePage() {
                     team2Name={p.team2_name}
                     team1Prob={p.team1_win_prob}
                   />
+                  {p.book_count !== undefined && p.book_count > 0 && (
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>
+                        Market: {Math.round((p.team1_implied ?? 0) * 100)}% / {Math.round((p.team2_implied ?? 0) * 100)}%
+                      </span>
+                      <span>·</span>
+                      <span>
+                        EV:{" "}
+                        <span className={p.team1_ev != null && p.team1_ev > 0 ? "text-emerald-500" : ""}>
+                          {p.team1_ev != null ? `${p.team1_ev >= 0 ? "+" : ""}${Math.round(p.team1_ev * 100)}%` : "—"}
+                        </span>{" "}
+                        <span className={p.team2_ev != null && p.team2_ev > 0 ? "text-emerald-500" : ""}>
+                          {p.team2_ev != null ? `${p.team2_ev >= 0 ? "+" : ""}${Math.round(p.team2_ev * 100)}%` : "—"}
+                        </span>
+                      </span>
+                      <span>·</span>
+                      <span>{p.book_count} books</span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

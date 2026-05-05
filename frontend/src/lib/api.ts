@@ -133,6 +133,11 @@ export interface PredictionItem {
   model_version: string;
   predicted_at: string;
   correct: boolean | null;
+  team1_implied?: number | null;
+  team2_implied?: number | null;
+  team1_ev?: number | null;
+  team2_ev?: number | null;
+  book_count?: number;
 }
 
 export interface AdHocPrediction {
